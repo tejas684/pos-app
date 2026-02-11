@@ -120,18 +120,6 @@ export function POSDataProvider({ children }: { children: React.ReactNode }) {
         fetchDisplayOrders(),
       ])
       const displayOrders = displayOrdersRaw.map(mapApiOrderToOrder)
-      if (typeof window !== 'undefined' && displayOrdersRaw.length > 0) {
-        const first = displayOrdersRaw[0] as Record<string, unknown>
-        const statusVal = getOrderStatusFromApi(displayOrdersRaw[0])
-        console.log('[POS] Orders from API – first order status debug:', {
-          keys: Object.keys(first),
-          status: first.status,
-          order_status: first.order_status,
-          orderStatus: first.orderStatus,
-          extracted: statusVal,
-          normalized: displayOrders[0]?.status,
-        })
-      }
       setState((prev) => ({
         ...prev,
         products,

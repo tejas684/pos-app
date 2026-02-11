@@ -632,7 +632,7 @@ export function usePOS() {
     if (waiterId != null && customerId != null && !payment) {
       const tableNumber =
         (selectedTable && selectedTable.match(/Table\s*(\d+)/i)?.[1]) ||
-        (tableId ?? selectedTable?.replace(/\D/g)) ||
+        (tableId ?? selectedTable?.replace(/\D/g, '')) ||
         '0'
       const firstTable = tables.find(
         (t) =>
@@ -924,7 +924,7 @@ export function usePOS() {
     if (options != null) {
       const tableNumber =
         (selectedTable && selectedTable.match(/Table\s*(\d+)/i)?.[1]) ||
-        (tableId ?? selectedTable?.replace(/\D/g)) ||
+        (tableId ?? selectedTable?.replace(/\D/g, '')) ||
         '0'
       const firstTable = tables.find(
         (t) =>

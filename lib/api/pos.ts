@@ -151,7 +151,7 @@ function normalizeApiCustomer(raw: unknown): ApiCustomer | null {
 /** Build full name for dropdown display – use consistently across app */
 export function getApiCustomerFullName(c: ApiCustomer): string {
   const first = (c.name ?? '').trim()
-  const last = (c.last_name ?? (c as Record<string, unknown>).lastName ?? (c as Record<string, unknown>).lastname ?? '').trim()
+  const last = String(c.last_name ?? (c as Record<string, unknown>).lastName ?? (c as Record<string, unknown>).lastname ?? '').trim()
   return [first, last].filter(Boolean).join(' ').trim() || first || String(c.id ?? '—')
 }
 

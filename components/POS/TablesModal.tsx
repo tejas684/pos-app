@@ -37,7 +37,7 @@ export default function TablesModal({
 }: TablesModalProps) {
   // Areas: from API (unique table.area) or default Garden / Hall
   const areas = useMemo(() => {
-    const fromTables = [...new Set(tables.map((t) => t.area).filter(Boolean))] as string[]
+    const fromTables = Array.from(new Set(tables.map((t) => t.area).filter(Boolean))) as string[]
     if (fromTables.length > 0) return fromTables.sort()
     return ['Garden', 'Hall']
   }, [tables])
