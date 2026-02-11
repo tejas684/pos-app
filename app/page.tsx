@@ -58,9 +58,9 @@ import type { ApiCustomer } from '@/lib/api/pos'
 import type { Order } from '@/types/pos'
 
 /** Full name for CustomerToEdit (newly added / modal) – used for matching and display; supports single name or name + last_name */
-function getCustomerFullNameForEdit(c: { name?: string; last_name?: string }): string {
-  const first = (c.name ?? '').trim()
-  const last = (c.last_name ?? (c as Record<string, unknown>).lastName ?? (c as Record<string, unknown>).lastname ?? '').trim()
+function getCustomerFullNameForEdit(c: { name?: string; last_name?: string } = {}): string {
+  const first = String(c.name ?? '').trim()
+  const last = String(c.last_name ?? (c as Record<string, unknown>).lastName ?? (c as Record<string, unknown>).lastname ?? '').trim()
   return [first, last].filter(Boolean).join(' ').trim() || first
 }
 
