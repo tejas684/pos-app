@@ -1,0 +1,247 @@
+/**
+ * ============================================================================
+ * GLOBAL CSS STYLES (app/globals.css)
+ * ============================================================================
+ * 
+ * This file contains global CSS styles applied to the entire application.
+ * 
+ * Structure:
+ * 1. Tailwind Directives - Import Tailwind's base, components, and utilities
+ * 2. CSS Variables - Custom color variables for theming
+ * 3. Global Styles - Base styles for body, fonts, and box-sizing
+ * 4. Custom Scrollbar - Styled scrollbars for better UX
+ * 5. Smooth Transitions - Global transition effects
+ * 6. Component Classes - Reusable button and card styles
+ * 
+ * This file is imported in app/layout.tsx, so all styles are available globally.
+ */
+
+/* Tailwind CSS Directives */
+/* base: Reset styles and base element styles */
+/* components: Component-level classes */
+/* utilities: Utility classes (e.g., flex, grid, p-4) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Custom Properties (Variables) */
+/* These can be used throughout the app for consistent theming */
+/* Using rem-friendly values for zoom compatibility - zoom scales root, so rem scales too */
+:root {
+  --foreground-rgb: 15, 23, 42; /* Dark slate color for text */
+  --background-start-rgb: 248, 250, 252; /* Light slate for gradient start */
+  --background-end-rgb: 255, 255, 255; /* White for gradient end */
+  --primary-rgb: 59, 130, 246; /* Primary blue */
+  --accent-rgb: 168, 85, 247; /* Accent purple */
+  --success-rgb: 34, 197, 94; /* Success green */
+  --warning-rgb: 245, 158, 11; /* Warning amber */
+  --danger-rgb: 239, 68, 68; /* Danger red */
+  /* Responsive spacing - scales with zoom */
+  --safe-area-inset: env(safe-area-inset-bottom, 0px);
+}
+
+/* Global Body Styles - Zoom-friendly: uses rem-based spacing */
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(152deg, #f8fafc 0%, #f1f5f9 28%, #e2e8f0 55%, #f1f5f9 82%, #f8fafc 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Universal Box Sizing */
+/* Ensures padding and border are included in element width/height */
+* {
+  box-sizing: border-box;
+}
+
+/* Custom scrollbar - Modern design */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.6);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cbd5e1 0%, #94a3b8 100%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
+  background-clip: padding-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 rgba(241, 245, 249, 0.6);
+}
+
+/* Smooth transitions - Enhanced */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Enhanced focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid rgb(var(--primary-rgb));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Enhanced Component Classes */
+@layer components {
+  /* Primary Button - Modern gradient with glow */
+  .btn-primary {
+    @apply bg-gradient-primary text-white font-semibold rounded-xl px-5 py-2.5 shadow-md hover:shadow-glow hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+  }
+  
+  /* Secondary Button - Clean and modern */
+  .btn-secondary {
+    @apply bg-white text-neutral-700 font-semibold rounded-xl px-5 py-2.5 border border-neutral-200 shadow-sm hover:shadow-md hover:bg-neutral-50 hover:border-neutral-300 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+  }
+  
+  /* Success Button */
+  .btn-success {
+    @apply bg-gradient-success text-white font-semibold rounded-xl px-5 py-2.5 shadow-md hover:shadow-glow-success hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+  }
+  
+  /* Danger Button */
+  .btn-danger {
+    @apply bg-gradient-to-r from-danger-500 to-danger-600 text-white font-semibold rounded-xl px-5 py-2.5 shadow-md hover:from-danger-600 hover:to-danger-700 hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200;
+  }
+  
+  /* Card - Enhanced with better shadows */
+  .card {
+    @apply bg-white rounded-2xl shadow-soft border border-neutral-100/50 hover:shadow-medium transition-all duration-200 backdrop-blur-sm;
+  }
+  
+  /* Glass morphism card */
+  .card-glass {
+    @apply bg-white/80 backdrop-blur-lg rounded-2xl shadow-medium border border-white/20;
+  }
+  
+  /* Input field - Modern styling */
+  .input-modern {
+    @apply w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 placeholder:text-neutral-400;
+  }
+  
+  /* Badge - Modern pill style */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-700;
+  }
+  
+  .badge-success {
+    @apply badge bg-success-100 text-success-700;
+  }
+  
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-700;
+  }
+  
+  .badge-danger {
+    @apply badge bg-danger-100 text-danger-700;
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  /* Mobile touch-friendly buttons */
+  .btn-mobile {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  /* ===== RESPONSIVE & ZOOM-FRIENDLY UTILITIES ===== */
+  /* Prevent horizontal overflow - critical for zoom in */
+  .overflow-x-safe {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Fluid container - scales with viewport and zoom (avoid 100vw - causes scrollbar overflow) */
+  .container-responsive {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  /* Minimum touch target - WCAG 2.5.5 */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Flex child that can shrink below content size (prevents overflow) */
+  .flex-shrink-allow {
+    min-width: 0;
+  }
+}
+
+/* Media queries for zoom and viewport scenarios */
+@layer utilities {
+  /* Small viewport (phones, or zoomed-in desktop) */
+  @media (max-width: 639px) {
+    html {
+      font-size: 16px; /* Prevent iOS zoom on input focus */
+    }
+  }
+
+  /* Small viewport / zoom: modal content should scroll when needed */
+  @media (max-width: 480px) {
+    [data-modal-content] {
+      max-height: 85vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

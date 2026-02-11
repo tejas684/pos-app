@@ -1,0 +1,174 @@
+/**
+ * ============================================================================
+ * POS HEADER COMPONENT (components/POS/POSHeader.tsx)
+ * ============================================================================
+ * 
+ * This component renders the top navigation bar of the POS system.
+ * 
+ * Features:
+ * 1. Quick Stats Toggle - Shows/hides statistics panel (Active Orders, Revenue, etc.)
+ * 2. Keyboard Shortcuts Button - Shows keyboard shortcuts help modal
+ * 4. Customer Info Button - Opens customer selection modal
+ * 5. Real-time Clock - Displays current time
+ * 
+ * Design:
+ * - Fixed at top of screen
+ * - Glassmorphism effect (backdrop blur, semi-transparent)
+ * - Responsive button layout
+ * - Hover effects and transitions
+ * 
+ * Props Pattern:
+ * - Receives all data and callbacks via props (presentational component)
+ * - No direct state management (state managed in parent via usePOS hook)
+ */
+
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import type { OrderType } from '@/types/pos'
+
+/**
+ * QuickStats Interface
+ * 
+ * Statistics displayed in the quick stats panel:
+ * - activeOrders: Number of orders currently in progress
+ * - todayRevenue: Total revenue for today
+ * - todayOrders: Total number of orders placed today
+ * - cartItems: Number of items in current cart
+ */
+interface QuickStats {
+  activeOrders: number
+  todayRevenue: number
+  todayOrders: number
+  cartItems: number
+}
+
+/**
+ * POSHeaderProps Interface
+ * 
+ * Props passed from parent component (POSPage):
+ * - quickStats: Statistics data to display
+ * - currentTime: Current date/time for clock display
+ * - showQuickStats: Whether stats panel is visible
+ * - showExecutionOrders: Whether execution orders sidebar is visible
+ * - showShortcuts: Whether shortcuts modal is open
+ * - onToggleQuickStats: Callback to toggle stats panel
+ * - onToggleExecutionOrders: Callback to toggle execution orders sidebar
+ * - onShowShortcuts: Callback to show keyboard shortcuts modal
+ * - onShowCustomerModal: Callback to show customer selection modal
+ */
+interface POSHeaderProps {
+  quickStats: QuickStats
+  currentTime: Date | null
+  showQuickStats: boolean
+  showExecutionOrders: boolean
+  showShortcuts: boolean
+  onToggleQuickStats: () => void
+  onToggleExecutionOrders: () => void
+  onShowShortcuts: () => void
+  onShowCustomerModal: () => void
+  onScrollToProducts?: () => void
+}
+
+export default function POSHeader({
+  quickStats,
+  currentTime,
+  showQuickStats,
+  showExecutionOrders,
+  onToggleQuickStats,
+  onToggleExecutionOrders,
+  onShowShortcuts,
+  onShowCustomerModal,
+  onScrollToProducts,
+}: POSHeaderProps) {
+  const router = useRouter()
+  const { user, logout } = useAuth()
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
+
+  return (
+    <header className="bg-white/95 backdrop-blur-md border-b border-neutral-200 px-2 sm:px-6 py-2.5 sm:py-4 flex items-center gap-2 sm:gap-3 shadow-soft flex-wrap overflow-x-auto scrollbar-hide">
+      {/* Time Display */}
+      <div className="px-3 sm:px-4 py-2 bg-neutral-50 rounded-xl border border-neutral-200 shadow-soft shrink-0">
+        {currentTime ? (
+          <>
+            <div className="text-[10px] sm:text-xs font-semibold text-neutral-500">{currentTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+            <div className="text-xs sm:text-sm font-bold text-neutral-800">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+          </>
+        ) : (
+          <>
+            <div className="text-[10px] sm:text-xs font-semibold text-neutral-500">--</div>
+            <div className="text-xs sm:text-sm font-bold text-neutral-800">--:--:--</div>
+          </>
+        )}
+      </div>
+
+      <button
+        onClick={onToggleExecutionOrders}
+        className={`px-3 sm:px-5 py-2.5 sm:py-2.5 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center gap-1 sm:gap-2 relative text-xs sm:text-sm min-h-[44px] sm:min-h-0 touch-manipulation shrink-0 ${
+          showExecutionOrders
+            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 shadow-glow'
+            : 'bg-neutral-400 text-white hover:bg-neutral-500'
+        }`}
+        title="Execution Orders (R)"
+      >
+        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span className="hidden sm:inline">Execution Orders</span>
+        {quickStats.activeOrders > 0 && (
+          <span className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+            {quickStats.activeOrders}
+          </span>
+        )}
+      </button>
+      
+      {/* Products Button - Prominent on Mobile */}
+      {onScrollToProducts && (
+        <button
+          onClick={onScrollToProducts}
+          className="px-4 sm:px-5 py-2.5 sm:py-2.5 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-xl font-semibold hover:from-accent-600 hover:to-accent-700 hover:shadow-glow-accent hover:shadow-lg transition-all shadow-md active:scale-95 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm min-h-[44px] sm:min-h-0 touch-manipulation shrink-0"
+          title="View Products (P)"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span>Products</span>
+        </button>
+      )}
+      <button
+        onClick={onShowCustomerModal}
+        className="hidden sm:flex px-5 py-2.5 bg-gradient-primary text-white rounded-xl font-semibold hover:shadow-glow hover:shadow-lg transition-all shadow-md transform hover:scale-105 active:scale-95 items-center gap-2"
+        title="Select Customer (C)"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span className="hidden md:inline">Customer</span>
+      </button>
+      <button 
+        className="hidden lg:flex px-4 py-2.5 bg-white text-neutral-700 rounded-xl font-semibold hover:bg-neutral-50 transition-all shadow-sm hover:shadow-md border border-neutral-200/50 transform hover:scale-105 active:scale-95"
+        title="Split Order (/)"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+      </button>
+      <div className="flex-1"></div>
+      <button
+        onClick={handleLogout}
+        className="px-3 sm:px-4 py-2.5 bg-neutral-600 text-white rounded-xl font-semibold hover:bg-neutral-700 active:bg-neutral-800 transition-all shadow-sm border border-neutral-500 shrink-0 min-h-[44px] sm:min-h-0"
+        title="Logout"
+      >
+        <span className="hidden sm:inline">{user?.name || user?.email || 'Logout'}</span>
+        <svg className="w-5 h-5 sm:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
+    </header>
+  )
+}
