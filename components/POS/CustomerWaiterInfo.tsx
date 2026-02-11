@@ -44,12 +44,12 @@ export default function CustomerWaiterInfo({
   const waiterDropdownRef = useRef<HTMLDivElement>(null)
   const waiterInputRef = useRef<HTMLInputElement>(null)
 
+  /** Cast to record for dynamic key access (first_name, firstName, etc.) without strict type error */
+  const asRecord = (o: unknown): Record<string, unknown> => o as Record<string, unknown>
   /** Build full name for dropdown (first + last) – supports last_name, lastName, lastname from API/form */
   const getCustomerFullName = (c: CustomerToEdit) => {
-    const first = (c.name ?? (c as Record<string, unknown>).first_name ?? (c as Record<string, unknown>).firstName ?? '').trim()
-    const last = (
-      (c.last_name ?? (c as Record<string, unknown>).lastName ?? (c as Record<string, unknown>).lastname ?? '') as string
-    ).trim()
+    const first = String(c.name ?? asRecord(c).first_name ?? asRecord(c).firstName ?? '').trim()
+    const last = String(c.last_name ?? asRecord(c).lastName ?? asRecord(c).lastname ?? '').trim()
     return [first, last].filter(Boolean).join(' ').trim() || first || '—'
   }
 
