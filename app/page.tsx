@@ -322,9 +322,9 @@ export default function POSPage() {
 
   return (
     <AuthGuard>
-    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-pos min-h-0 overflow-hidden w-full max-w-full">
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', height: '100dvh', overflow: 'hidden' }} className="bg-gradient-pos">
       {/* Top Header with Action Buttons */}
-      <div className="flex-shrink-0">
+      <div style={{ flexShrink: 0 }}>
         <POSHeader
         quickStats={quickStats}
         currentTime={currentTime}
@@ -372,7 +372,7 @@ export default function POSPage() {
       </div>
 
       {/* Mobile Dashboard Header - Only visible on mobile */}
-      <div className="lg:hidden flex-shrink-0 bg-white border-b border-neutral-200 shadow-md sticky top-0 z-30">
+      <div className="lg:hidden flex-shrink-0 bg-white border-b border-neutral-200 shadow-md sticky top-0 z-30" style={{ flexShrink: 0 }}>
         <div className="flex items-center justify-around px-2 py-3 gap-1">
           <button
             onClick={() => setMobileActivePanel('dashboard')}
@@ -448,9 +448,9 @@ export default function POSPage() {
       </div>
 
       {/* Main Content Area - Flex layout: execution (optional) | cart | products; 100% zoom safe, no overflow-x */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden overflow-x-hidden relative min-h-0 min-w-0 isolate w-full max-w-full basis-0">
-        {/* Left Sidebar - Execution Orders: show on desktop when toggled, proportional width */}
-        <div className={`${mobileActivePanel === 'execution' ? 'block' : 'hidden'} ${showExecutionOrders ? 'lg:flex lg:flex-[0_0_16%] lg:min-w-0 lg:max-w-[20%]' : 'lg:hidden'}`}>
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, minWidth: 0, overflow: 'hidden' }} className="lg:flex-row flex-col relative isolate">
+        {/* Left Sidebar - Execution Orders: show on desktop when toggled, fixed proportional width */}
+        <div className={`${mobileActivePanel === 'execution' ? 'block' : 'hidden'} ${showExecutionOrders ? 'lg:flex' : 'lg:hidden'}`} style={showExecutionOrders ? { flexShrink: 0, width: '18%', maxWidth: '280px', overflow: 'hidden', display: 'flex', flexDirection: 'column' } : {}}>
           {showExecutionOrders || mobileActivePanel === 'execution' ? (
             <ExecutionOrdersSidebar
               orders={orders}
@@ -533,8 +533,8 @@ export default function POSPage() {
           ) : null}
         </div>
 
-        {/* Center Panel - Order Management / Cart: proportional width (36%), fits at 100% zoom */}
-        <div className={`flex flex-col h-full min-w-0 lg:flex lg:flex-[0_1_36%] lg:min-w-0 lg:max-w-[42%] relative z-30 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.06)] overflow-hidden ${mobileActivePanel === 'orders' || mobileActivePanel === 'dashboard' ? 'block' : 'hidden'}`}>
+        {/* Center Panel - Order Management / Cart: flexible width, fills available space */}
+        <div className={`relative z-30 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.06)] ${mobileActivePanel === 'orders' || mobileActivePanel === 'dashboard' ? 'block' : 'hidden'} lg:block`} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {mobileActivePanel === 'dashboard' ? (
             // Dashboard View on Mobile
             <div className="h-full overflow-y-auto bg-white p-4 lg:hidden">
@@ -714,8 +714,8 @@ export default function POSPage() {
           )}
         </div>
 
-        {/* Product Catalog: takes remaining space (flex-1), 100% zoom safe */}
-        <div className={`flex flex-col min-w-0 lg:flex lg:flex-1 lg:min-w-0 lg:overflow-hidden lg:relative lg:z-0 lg:min-h-0 lg:basis-0 ${mobileActivePanel === 'products' ? 'block' : 'hidden'}`}>
+        {/* Product Catalog: takes remaining space, fixed proportional width on desktop */}
+        <div className={`${mobileActivePanel === 'products' ? 'block' : 'hidden'} lg:block`} style={{ flexShrink: 0, width: '32%', maxWidth: '480px', display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
           <ProductCatalogPanel
             onAddToCart={(product) => {
               addToCart(product)
