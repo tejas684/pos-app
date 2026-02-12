@@ -549,6 +549,30 @@ export async function updateOrderApi(orderId: string, body: UpdateOrderRequest):
 }
 
 // ---------------------------------------------------------------------------
+// Order Payment Store API (api/order/payment/store)
+// ---------------------------------------------------------------------------
+
+export interface StoreOrderPaymentRequest {
+  order_id: number
+  total_amount: number
+  discount: number
+  online_amount: number
+  cash_amount: number
+  note: string
+}
+
+export interface StoreOrderPaymentResponse {
+  message?: string
+  data?: unknown
+  [key: string]: unknown
+}
+
+/** Submit payment for an order. POST api/order/payment/store */
+export async function storeOrderPaymentApi(body: StoreOrderPaymentRequest): Promise<StoreOrderPaymentResponse> {
+  return apiPost<StoreOrderPaymentResponse>('api/order/payment/store', body)
+}
+
+// ---------------------------------------------------------------------------
 // Order Details API (fetch full order when opening Order Details from execution panel)
 // ---------------------------------------------------------------------------
 

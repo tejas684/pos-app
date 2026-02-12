@@ -73,8 +73,7 @@ export default function OrderDetailsModal({
     // Order-level discount (separate from item discounts)
     const orderDiscount = order.discount || 0
 
-    // Tax is already in the order
-    const tax = order.tax || 0
+    const tax = 0
 
     // Charge and tips from order
     const charge = order.charge || 0
@@ -234,10 +233,6 @@ export default function OrderDetailsModal({
             <div className="flex justify-between">
               <span className="text-gray-600">Total Discount:</span>
               <span className="font-medium text-gray-900">₹{orderTotals.totalDiscount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Tax:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Load:</span>

@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import type { Order } from '@/types/pos'
+import { useRef, useState, useMemo } from 'react'
+import type { Order, CartItem } from '@/types/pos'
 
 const CURRENCY = '₹'
 
@@ -10,9 +10,8 @@ interface InvoiceBillModalProps {
   onClose: () => void
 }
 
-function formatOrderNumber(orderId: string) {
-  if (orderId.startsWith('ORD-')) return orderId
-  return orderId
+function formatOrderNumber(order: Order) {
+  return order.orderNumber ?? order.id
 }
 
 function formatDateTime(date: Date) {
@@ -26,18 +25,50 @@ function formatDateTime(date: Date) {
   return `${y}-${m}-${day} ${h}:${min}:${s}`
 }
 
+function getOrderTypeLabel(orderType: string) {
+  switch (orderType) {
+    case 'dine-in': return 'Dine in'
+    case 'take-away': return 'Takeaway'
+    case 'delivery': return 'Delivery'
+    default: return orderType
+  }
+}
+
+/** Per-line: unit price (base + modifiers), line total, item discount, total after discount */
+function getItemLineTotals(item: CartItem) {
+  const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) || 0)
+  const lineTotal = unitPrice * item.quantity
+  const isPercentage = item.discountType === 'percentage'
+  const rawDiscount = item.discount ?? 0
+  const itemDiscount =
+    rawDiscount <= 0
+      ? 0
+      : isPercentage
+        ? (lineTotal * Math.min(100, rawDiscount)) / 100
+        : Math.min(rawDiscount * item.quantity, lineTotal)
+  const totalAfterDiscount = Math.max(0, lineTotal - itemDiscount)
+  return { unitPrice, lineTotal, itemDiscount, totalAfterDiscount, isPercentage, rawDiscount }
+}
+
 export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalProps) {
   const printRef = useRef<HTMLDivElement>(null)
   const [isPrinting, setIsPrinting] = useState(false)
 
-  const orderNumber = formatOrderNumber(order.id)
-  const tax = order.tax ?? 0
+  const orderNumber = formatOrderNumber(order)
   const charge = order.charge ?? 0
   const tips = order.tips ?? 0
-  const discount = order.discount ?? 0
-  const subtotalBeforeTax = order.total - tax - charge - tips
+  const orderDiscount = order.discount ?? 0
   const paidAmount = order.payment?.amount ?? 0
   const changeAmount = order.payment?.change ?? 0
+
+  const { itemsTotal } = useMemo(() => {
+    let total = 0
+    for (const item of order.items ?? []) {
+      const { lineTotal } = getItemLineTotals(item)
+      total += lineTotal
+    }
+    return { itemsTotal: total }
+  }, [order.items])
 
   const handlePrint = () => {
     if (!printRef.current) return
@@ -112,6 +143,10 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
               {order.tableName && (
                 <p><span className="text-gray-600">Table:</span> {order.tableName}</p>
               )}
+              {order.waiter && (
+                <p><span className="text-gray-600">Waiter:</span> {order.waiter}</p>
+              )}
+              <p><span className="text-gray-600">Order type:</span> {getOrderTypeLabel(order.orderType ?? 'dine-in')}</p>
             </div>
 
             <div className="border-t border-b border-dashed border-gray-300 my-4" />
@@ -120,42 +155,44 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2">Item</th>
-                  <th className="text-center py-2 w-12">Q</th>
+                  <th className="text-center py-2 w-12">Qty</th>
                   <th className="text-right py-2">Price</th>
-                  <th className="text-right py-2">Total Price</th>
+                  <th className="text-right py-2">Total</th>
                 </tr>
               </thead>
               <tbody>
-                {order.items.map((item, index) => {
-                  const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) || 0)
-                  const lineTotal = unitPrice * item.quantity
-                  const itemDiscount = item.discount != null && item.discount > 0
-                    ? (lineTotal * item.discount) / 100
-                    : 0
-                  const totalAfterDiscount = lineTotal - itemDiscount
+                {(order.items ?? []).map((item, index) => {
+                  const { unitPrice, itemDiscount, totalAfterDiscount, isPercentage, rawDiscount } = getItemLineTotals(item)
                   return (
                     <tr key={item.lineItemId || index} className="border-b border-gray-100">
                       <td className="py-2">
                         <div className="font-medium">{index + 1}. {item.name}</div>
                         {item.selectedSize && (
-                          <div className="text-xs text-gray-500">
-                            Size: {item.selectedSize} ({CURRENCY}{item.price.toFixed(2)})
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            Size: {item.selectedSize} — {CURRENCY}{item.price.toFixed(2)}/unit
                           </div>
                         )}
                         {item.modifiers && item.modifiers.length > 0 && (
                           <div className="text-xs text-gray-500 mt-0.5">
-                            {item.modifiers.map((m, i) => (
-                              <span key={i}>- {m.name} (+{CURRENCY}{m.price.toFixed(2)}) </span>
+                            Add-ons: {item.modifiers.map((m, i) => (
+                              <span key={i}>{m.name} (+{CURRENCY}{m.price.toFixed(2)}){i < item.modifiers!.length - 1 ? ', ' : ''}</span>
                             ))}
                           </div>
                         )}
                         {itemDiscount > 0 && (
-                          <div className="text-xs text-gray-500">Discount: {CURRENCY}{itemDiscount.toFixed(2)}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            Item discount: {isPercentage ? `${rawDiscount}%` : `${CURRENCY}${rawDiscount.toFixed(2)} off`} — −{CURRENCY}{itemDiscount.toFixed(2)}
+                          </div>
+                        )}
+                        {item.notes && item.notes.trim() && (
+                          <div className="text-xs text-gray-600 mt-0.5 italic">
+                            Note: {item.notes.trim()}
+                          </div>
                         )}
                       </td>
-                      <td className="text-center py-2">{item.quantity}</td>
-                      <td className="text-right py-2">{CURRENCY}{unitPrice.toFixed(2)}</td>
-                      <td className="text-right py-2">{CURRENCY}{totalAfterDiscount.toFixed(2)}</td>
+                      <td className="text-center py-2 align-top">{item.quantity}</td>
+                      <td className="text-right py-2 align-top">{CURRENCY}{unitPrice.toFixed(2)}</td>
+                      <td className="text-right py-2 align-top">{CURRENCY}{totalAfterDiscount.toFixed(2)}</td>
                     </tr>
                   )
                 })}
@@ -165,40 +202,38 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
             <div className="border-t border-b border-dashed border-gray-300 my-4" />
 
             <div className="text-sm space-y-1">
-              {tax > 0 && (
-                <>
-                  <div className="flex justify-between">
-                    <span>CGST</span>
-                    <span>{CURRENCY}{(tax / 2).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>SGST</span>
-                    <span>{CURRENCY}{(tax / 2).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Taxes (Total)</span>
-                    <span>{CURRENCY}{tax.toFixed(2)}</span>
-                  </div>
-                </>
+              <div className="flex justify-between">
+                <span>Items total</span>
+                <span>{CURRENCY}{itemsTotal.toFixed(2)}</span>
+              </div>
+              {orderDiscount > 0 && (
+                <div className="flex justify-between text-red-600">
+                  <span>Order discount</span>
+                  <span>−{CURRENCY}{orderDiscount.toFixed(2)}</span>
+                </div>
               )}
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{CURRENCY}{subtotalBeforeTax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Total Tax</span>
-                <span>{CURRENCY}{tax.toFixed(2)}</span>
-              </div>
+              {charge > 0 && (
+                <div className="flex justify-between">
+                  <span>Charge</span>
+                  <span>{CURRENCY}{charge.toFixed(2)}</span>
+                </div>
+              )}
+              {tips > 0 && (
+                <div className="flex justify-between">
+                  <span>Tips</span>
+                  <span>{CURRENCY}{tips.toFixed(2)}</span>
+                </div>
+              )}
             </div>
 
             <div className="border-t border-b border-dashed border-gray-300 my-4" />
 
             <div className="flex justify-between text-base font-bold">
-              <span>GRAND TOTAL:</span>
+              <span>Grand total</span>
               <span>{CURRENCY}{order.total.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm mt-2 text-green-700 font-semibold">
-              <span>Paid Amount</span>
+              <span>Paid amount</span>
               <span>{CURRENCY}{paidAmount.toFixed(2)}</span>
             </div>
             {changeAmount > 0 && (

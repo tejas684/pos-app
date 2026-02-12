@@ -40,6 +40,7 @@ export {
   cancelOrderApi,
   fetchOrderDetails,
   getApiCustomerFullName,
+  storeOrderPaymentApi,
 } from './pos'
 export type {
   ApiProduct,
@@ -55,4 +56,6 @@ export type {
   CancelOrderRequest,
   CancelOrderResponse,
   OrderDetailsResult,
+  StoreOrderPaymentRequest,
+  StoreOrderPaymentResponse,
 } from './pos'

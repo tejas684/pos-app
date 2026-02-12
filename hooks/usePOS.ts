@@ -255,14 +255,8 @@ export function usePOS() {
     return () => clearInterval(timer)
   }, [isMounted])
 
-  // Get tax rate from environment variable or default to 10%
-  const taxRate = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const envRate = process.env.NEXT_PUBLIC_TAX_RATE
-      return envRate ? parseFloat(envRate) : 10
-    }
-    return 10
-  }, [])
+  // Tax disabled – discount only
+  const taxRate = 0
 
   // Calculate quick stats
   const quickStats = useMemo(() => {
@@ -552,28 +546,14 @@ export function usePOS() {
     return round2((subtotal * clampedDiscount) / 100)
   }, [subtotal, discount])
 
-  const tax = useMemo(() => {
-    // Calculate tax individually for each product/item based on its price, then combine/sum them
-    const totalTax = cartItems.reduce((acc, item) => {
-      // Calculate item price including modifiers (base price + modifier prices)
-      const itemPrice = item.price + (item.modifiers?.reduce((mSum, mod) => mSum + mod.price, 0) || 0)
-      // Calculate line total for this item (price * quantity)
-      const lineTotal = itemPrice * item.quantity
-      // Calculate tax for this individual product/item (tax on the product's price)
-      const itemTax = lineTotal * (taxRate / 100)
-      // Add this item's tax to the total
-      return acc + itemTax
-    }, 0)
-    // Return the combined total of all individual product taxes
-    return round2(totalTax)
-  }, [cartItems, taxRate])
+  const tax = 0
 
   const totalPayable = useMemo(() => {
     const safeCharge = Math.max(0, charge)
     const safeTips = Math.max(0, tips)
     const base = Math.max(0, subtotal - discountAmount)
-    return round2(base + tax + safeCharge + safeTips)
-  }, [subtotal, discountAmount, tax, charge, tips])
+    return round2(base + safeCharge + safeTips)
+  }, [subtotal, discountAmount, charge, tips])
 
   const handlePlaceOrder = useCallback(async (options?: {
     markCompleted?: boolean
@@ -1013,8 +993,9 @@ export function usePOS() {
     // Calculate discount from order
     if (order.discount && order.discount > 0) {
       // Estimate discount percentage (this is approximate)
-      const tax = order.tax || 0
-      const estimatedDiscount = (order.discount / (order.total - tax + order.discount)) * 100
+      const estimatedDiscount = order.total > 0 && order.discount
+        ? (order.discount / (order.total + order.discount)) * 100
+        : 0
       setDiscount(Math.min(100, Math.max(0, estimatedDiscount)))
     } else {
       setDiscount(0)

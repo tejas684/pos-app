@@ -115,7 +115,7 @@ export default function ExecutionOrdersSidebar({
           onClick={onClose}
         />
       )}
-      <div className="w-full lg:w-72 xl:w-80 lg:flex-shrink-0 flex flex-col bg-white border-r border-neutral-200 shadow-soft absolute lg:relative inset-0 lg:inset-auto z-40 lg:z-auto h-full min-w-0">
+      <div className="w-full max-w-full lg:flex-shrink-0 flex flex-col bg-white border-r border-neutral-200 shadow-soft absolute lg:relative inset-0 lg:inset-auto z-40 lg:z-auto h-full min-w-0">
         {/* Execution Orders Header */}
         <div className="px-4 sm:px-5 py-4 border-b border-neutral-200 bg-gradient-to-b from-neutral-50 to-white">
           <div className="flex items-center justify-between mb-3">

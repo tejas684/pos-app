@@ -90,7 +90,7 @@ export default function ProductCatalogPanel({
   }, [selectedCategory])
 
   return (
-    <div id="product-catalog-panel" className="flex-1 flex flex-col bg-neutral-50/50 min-w-0 w-full h-full overflow-hidden relative z-0 isolate">
+    <div id="product-catalog-panel" className="flex-1 flex flex-col bg-neutral-50/50 min-w-0 w-full max-w-full h-full min-h-0 overflow-hidden relative z-0 isolate">
       {/* Top: Sticky Search Bar - Mobile First */}
       <div className="flex-shrink-0 bg-white border-b border-neutral-200 shadow-soft sticky top-0 z-20 lg:relative lg:z-auto">
         {/* Search input - Always at top */}
@@ -189,9 +189,9 @@ export default function ProductCatalogPanel({
       </div>
 
       {/* Main: Sidebar + Product grid */}
-      <div className="flex-1 flex overflow-hidden min-h-0 relative">
+      <div className="flex-1 flex overflow-hidden min-h-0 relative min-w-0">
         {/* Left sidebar – vertical category filters (Desktop only) */}
-        <aside className="hidden lg:flex flex-shrink-0 w-56 bg-white border-r border-neutral-200 py-4 overflow-y-auto">
+        <aside className="hidden lg:flex flex-shrink-0 w-48 bg-white border-r border-neutral-200 py-4 overflow-y-auto min-w-0">
           <nav className="flex flex-col gap-2 px-3 w-full" aria-label="Product categories">
             <div className="px-2 py-1.5 mb-1">
               <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Categories</h3>

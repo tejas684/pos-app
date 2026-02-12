@@ -222,16 +222,15 @@ export default function POSPage() {
     const order = orderToPay ?? activeOrders[0]
     if (order) {
       const ot = order.total
-      const oTax = order.tax ?? 0
       const oCharge = order.charge ?? 0
       const oTips = order.tips ?? 0
       const oDiscount = order.discount ?? 0
-      const base = ot - oTax - oCharge - oTips
+      const base = ot - oCharge - oTips
       return {
         mrp: base + oDiscount,
         sellingPrice: base,
-        cgst: oTax / 2,
-        sgst: oTax / 2,
+        cgst: 0,
+        sgst: 0,
         igst: 0,
         vat: 0,
         discount: oDiscount,
@@ -323,7 +322,7 @@ export default function POSPage() {
 
   return (
     <AuthGuard>
-    <div className="h-screen flex flex-col bg-gradient-pos min-h-screen overflow-hidden w-full">
+    <div className="h-screen h-[100dvh] flex flex-col bg-gradient-pos min-h-0 overflow-hidden w-full max-w-full">
       {/* Top Header with Action Buttons */}
       <div className="flex-shrink-0">
         <POSHeader
@@ -448,10 +447,10 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* Main Content Area - Three Panes: cart gets fixed width, product catalog takes the rest */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative min-h-0 isolate">
-        {/* Left Sidebar - Execution Orders */}
-        <div className={`lg:flex lg:flex-shrink-0 ${mobileActivePanel === 'execution' ? 'block' : 'hidden'}`}>
+      {/* Main Content Area - Flex layout: execution (optional) | cart | products; 100% zoom safe, no overflow-x */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden overflow-x-hidden relative min-h-0 min-w-0 isolate w-full max-w-full basis-0">
+        {/* Left Sidebar - Execution Orders: show on desktop when toggled, proportional width */}
+        <div className={`${mobileActivePanel === 'execution' ? 'block' : 'hidden'} ${showExecutionOrders ? 'lg:flex lg:flex-[0_0_16%] lg:min-w-0 lg:max-w-[20%]' : 'lg:hidden'}`}>
           {showExecutionOrders || mobileActivePanel === 'execution' ? (
             <ExecutionOrdersSidebar
               orders={orders}
@@ -478,15 +477,31 @@ export default function POSPage() {
               onReprintKOT={(order) => {
                 setLastPlacedOrder(order)
               }}
-              onInvoice={(order) => {
+              onInvoice={async (order) => {
                 setLastPlacedOrder(null)
                 setOrderToPay(order)
                 setShowPaymentModal(true)
+                if ((order.items ?? []).length === 0) {
+                  try {
+                    const { order: detailsOrder } = await fetchOrderDetails(order.id)
+                    setOrderToPay(detailsOrder)
+                  } catch {
+                    showToast('Could not load order details', 'error')
+                  }
+                }
               }}
-              onAccount={(order) => {
+              onAccount={async (order) => {
                 setLastPlacedOrder(null)
                 setOrderToPay(order)
                 setShowPaymentModal(true)
+                if ((order.items ?? []).length === 0) {
+                  try {
+                    const { order: detailsOrder } = await fetchOrderDetails(order.id)
+                    setOrderToPay(detailsOrder)
+                  } catch {
+                    showToast('Could not load order details', 'error')
+                  }
+                }
               }}
               onCancelOrder={(order) => {
                 if (confirm(`Are you sure you want to cancel order ${order.id}?`)) {
@@ -518,8 +533,8 @@ export default function POSPage() {
           ) : null}
         </div>
 
-        {/* Center Panel - Order Management / Cart: larger width; product catalog gets the remainder */}
-        <div className={`flex flex-col h-full lg:flex lg:flex-shrink-0 lg:w-[40rem] xl:w-[44rem] lg:min-w-[36rem] lg:max-w-[48rem] min-w-0 relative z-30 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.06)] ${mobileActivePanel === 'orders' || mobileActivePanel === 'dashboard' ? 'block' : 'hidden'}`}>
+        {/* Center Panel - Order Management / Cart: proportional width (36%), fits at 100% zoom */}
+        <div className={`flex flex-col h-full min-w-0 lg:flex lg:flex-[0_1_36%] lg:min-w-0 lg:max-w-[42%] relative z-30 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.06)] overflow-hidden ${mobileActivePanel === 'orders' || mobileActivePanel === 'dashboard' ? 'block' : 'hidden'}`}>
           {mobileActivePanel === 'dashboard' ? (
             // Dashboard View on Mobile
             <div className="h-full overflow-y-auto bg-white p-4 lg:hidden">
@@ -699,8 +714,8 @@ export default function POSPage() {
           )}
         </div>
 
-        {/* Product Catalog: takes remaining space only, never overlaps cart */}
-        <div className={`lg:flex lg:flex-1 lg:min-w-0 lg:overflow-hidden lg:relative lg:z-0 ${mobileActivePanel === 'products' ? 'block' : 'hidden'}`}>
+        {/* Product Catalog: takes remaining space (flex-1), 100% zoom safe */}
+        <div className={`flex flex-col min-w-0 lg:flex lg:flex-1 lg:min-w-0 lg:overflow-hidden lg:relative lg:z-0 lg:min-h-0 lg:basis-0 ${mobileActivePanel === 'products' ? 'block' : 'hidden'}`}>
           <ProductCatalogPanel
             onAddToCart={(product) => {
               addToCart(product)
@@ -721,6 +736,14 @@ export default function POSPage() {
       {showPaymentModal && (
         <PaymentModal
           key={orderToPay ? `order-${orderToPay.id}` : 'cart'}
+          order={orderToPay}
+          cartItems={cartItems}
+          cartContext={!orderToPay && cartItems.length > 0 ? {
+            customerName: customer || '—',
+            tableName: selectedTable || undefined,
+            waiter: waiter || undefined,
+            orderType: orderType || 'dine-in',
+          } : undefined}
           payableAmount={paymentTotal}
           billSummary={paymentBillSummary}
           onClose={() => {

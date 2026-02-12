@@ -141,7 +141,7 @@ export default function CustomerWaiterInfo({
         {/* Waiter: searchable dropdown with arrow */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:flex-shrink-0">
           <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Ds Waiter</label>
-          <div className="relative w-full sm:min-w-[140px]" ref={waiterDropdownRef}>
+          <div className="relative w-full min-w-0 flex-1" ref={waiterDropdownRef}>
             <input
               ref={waiterInputRef}
               type="text"
@@ -182,7 +182,7 @@ export default function CustomerWaiterInfo({
         {/* Customer: searchable dropdown with arrow + Edit + Add */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-1 min-w-0">
           <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Customer</label>
-          <div className="relative flex-1 w-full sm:min-w-[160px]" ref={customerDropdownRef}>
+          <div className="relative flex-1 w-full min-w-0" ref={customerDropdownRef}>
             <input
               ref={customerInputRef}
               type="text"

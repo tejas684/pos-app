@@ -52,14 +52,11 @@ function CartItemOptionsModal({
   const [showDiscountInput, setShowDiscountInput] = useState(false)
   const [showChargeInput, setShowChargeInput] = useState(false)
   const [showTipsInput, setShowTipsInput] = useState(false)
-  const [showTaxDetails, setShowTaxDetails] = useState(false)
-
   useEffect(() => {
     if (!isOpen) {
       setShowDiscountInput(false)
       setShowChargeInput(false)
       setShowTipsInput(false)
-      setShowTaxDetails(false)
     }
   }, [isOpen])
 
@@ -181,63 +178,6 @@ function CartItemOptionsModal({
               <span className="text-sm font-medium text-gray-700">Total Discount:</span>
               <span className="text-sm font-semibold text-gray-900">₹{totalDiscount.toFixed(2)}</span>
             </div>
-
-            {/* Tax */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Tax:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">₹{tax.toFixed(2)}</span>
-                <button
-                  onClick={() => setShowTaxDetails(!showTaxDetails)}
-                  className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                  aria-label="View tax details"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Tax Details */}
-            {showTaxDetails && (
-              <div className="ml-4 pl-4 border-l-2 border-primary-200 bg-primary-50 rounded p-3 space-y-2">
-                <p className="text-xs font-semibold text-gray-700 mb-2">Tax Calculation (Per Product):</p>
-                {cartItems.length > 0 ? (
-                  <>
-                    {cartItems.map((item, index) => {
-                      // Calculate item price including modifiers
-                      const itemPrice = item.price + (item.modifiers?.reduce((sum, mod) => sum + mod.price, 0) || 0)
-                      // Calculate line total
-                      const lineTotal = itemPrice * item.quantity
-                      // Calculate tax for this item
-                      const itemTax = lineTotal * (taxRate / 100)
-                      return (
-                        <div key={item.id || index} className="text-xs text-gray-700 space-y-0.5">
-                          <p className="font-medium">{item.name} (Qty: {item.quantity}):</p>
-                          <p className="ml-2">
-                            ₹{itemPrice.toFixed(2)} × {item.quantity} = ₹{lineTotal.toFixed(2)}
-                          </p>
-                          <p className="ml-2 text-primary-600">
-                            Tax ({taxRate}%): ₹{itemTax.toFixed(2)}
-                          </p>
-                        </div>
-                      )
-                    })}
-                    <div className="pt-2 mt-2 border-t border-primary-200">
-                      <p className="text-xs font-semibold text-gray-900">
-                        Total Tax: ₹{tax.toFixed(2)} (Sum of all individual product taxes)
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-xs text-gray-700">
-                    Tax calculated individually for each product at {taxRate}% rate, then combined.
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Charge */}
             <div className="flex items-center justify-between">

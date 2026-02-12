@@ -120,7 +120,7 @@ export default function OrderSummary({
               <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-lg text-sm font-medium">{selectedTable}</span>
             </div>
           )}
-          {/* Breakdown: Subtotal ± Order discount + Tax + Charge + Tips = Total */}
+          {/* Breakdown: Subtotal ± Order discount + Charge + Tips = Total */}
           {cartItemsCount > 0 && (
             <div className="text-left sm:text-right text-xs text-gray-500 space-y-0.5 mb-1 w-full">
               <div className="flex items-center justify-between sm:justify-end gap-3">
@@ -133,10 +133,6 @@ export default function OrderSummary({
                   <span>−₹{totalDiscount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <span>Tax</span>
-                <span>₹{tax.toFixed(2)}</span>
-              </div>
               {charge > 0 && (
                 <div className="flex items-center justify-between sm:justify-end gap-3">
                   <span>Charge</span>
@@ -169,13 +165,13 @@ export default function OrderSummary({
               <span className="hidden sm:inline">Cancel</span>
               <span className="sm:hidden">Cancel</span>
             </button>
-            <button 
+            <button
               onClick={onShowPaymentModal}
               className="flex-1 min-w-0 sm:min-w-[100px] px-3 sm:px-4 py-3.5 sm:py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 active:bg-blue-700 transition-all flex items-center justify-center gap-1.5 sm:gap-2 text-sm sm:text-base min-h-[48px] sm:min-h-0 touch-manipulation shadow-md hover:shadow-lg"
               title="Payment"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="hidden sm:inline">Payment</span>
               <span className="sm:hidden">Payment</span>

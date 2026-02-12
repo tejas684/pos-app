@@ -21,17 +21,17 @@ export default function OrderItemsTable({
 }: OrderItemsTableProps) {
   const hasItems = cartItems.length > 0
   return (
-    <div className={`flex-1 min-h-0 ${hasItems ? 'overflow-y-auto overflow-x-auto scrollbar-hide' : 'overflow-hidden'}`}>
-      <div className="p-3 sm:p-5">
-        <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full min-w-[480px]">
+    <div className={`flex-1 min-h-0 ${hasItems ? 'overflow-y-auto overflow-x-hidden scrollbar-hide' : 'overflow-hidden'}`}>
+      <div className="p-3 sm:p-5 min-w-0">
+        <div className="min-w-0 overflow-x-hidden">
+          <table className="w-full min-w-0 table-fixed">
             <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
               <tr>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Product</th>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Price</th>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Qty.</th>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Discount</th>
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Total</th>
+                <th className="w-[34%] px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Product</th>
+                <th className="w-[16%] px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Price</th>
+                <th className="w-[20%] px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Qty.</th>
+                <th className="w-[14%] px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Disc.</th>
+                <th className="w-[16%] px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Total</th>
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200">
@@ -66,9 +66,9 @@ export default function OrderItemsTable({
                   : '-'
                 return (
                   <tr key={item.lineItemId} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all animate-in fade-in slide-in-from-left-2">
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-sm text-gray-900 flex items-center gap-2">
-                        <span>{item.name}</span>
+                    <td className="px-2 sm:px-3 py-3 align-top overflow-hidden">
+                      <div className="font-semibold text-sm text-gray-900 flex items-center gap-2 min-w-0">
+                        <span className="truncate" title={item.name}>{item.name}</span>
                         {addingToCart === item.id && (
                           <span className="text-xs text-success-600 animate-pulse">✓ Added</span>
                         )}
@@ -79,8 +79,8 @@ export default function OrderItemsTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm font-medium text-gray-700">₹{itemPrice.toFixed(2)}</td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3">
+                    <td className="px-1 sm:px-2 py-3 text-right text-sm font-medium text-gray-700 whitespace-nowrap">₹{itemPrice.toFixed(2)}</td>
+                    <td className="px-1 sm:px-2 py-2 sm:py-3">
                       {readOnly ? (
                         <span className="text-sm font-bold text-center block">{item.quantity}</span>
                       ) : (
@@ -107,7 +107,7 @@ export default function OrderItemsTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
+                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-center">
                       {readOnly ? (
                         <span className="text-xs text-gray-600">{discountLabel}</span>
                       ) : (
@@ -120,7 +120,7 @@ export default function OrderItemsTable({
                         </button>
                       )}
                     </td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
+                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-right">
                       {readOnly ? (
                         <span className="text-sm font-bold text-gray-900">₹{itemTotal.toFixed(2)}</span>
                       ) : (
