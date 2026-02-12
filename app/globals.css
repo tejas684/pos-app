@@ -71,10 +71,10 @@ body {
 
 /* Universal Box Sizing */
 /* Ensures padding and border are included in element width/height */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 /* Custom scrollbar - Modern design */
