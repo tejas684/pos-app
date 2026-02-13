@@ -106,7 +106,7 @@ function ProductCatalog({
 
   if (productsSource.length === 0) {
     return (
-      <div className="p-2 sm:p-3 lg:p-4 pb-3 sm:pb-4">
+      <div className="p-2 sm:p-3 md:p-4 pb-3 sm:pb-4">
         <div className="flex flex-col items-center justify-center py-8 sm:py-10 text-center">
           <svg className="w-14 h-14 sm:w-16 sm:h-16 text-neutral-400 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8 4-8-4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -123,11 +123,11 @@ function ProductCatalog({
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-5 pb-4 sm:pb-5">
-      {/* Product count header - Mobile optimized */}
-      <div className="mb-2 sm:mb-3 px-1 flex items-center justify-between">
+    <div className="p-2 sm:p-3 md:p-3 pb-3 sm:pb-3">
+      {/* Product count header - compact for 100% zoom */}
+      <div className="mb-1 sm:mb-1.5 px-1 flex items-center justify-between">
         <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="text-sm sm:text-base md:text-lg font-bold text-neutral-800">
+          <h2 className="text-xs sm:text-sm font-bold text-neutral-800">
             {selectedCategory === 'All' && !searchQuery.trim() 
               ? 'All Products' 
               : searchQuery.trim()
@@ -135,7 +135,7 @@ function ProductCatalog({
               : `${selectedCategory} Products`
             }
           </h2>
-          <span className="px-3 py-1.5 sm:px-2.5 sm:py-1 bg-primary-100 text-primary-700 rounded-full text-xs sm:text-xs font-semibold whitespace-nowrap">
+          <span className="px-2 py-1 sm:px-2 sm:py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-semibold whitespace-nowrap">
             {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
           </span>
         </div>
@@ -144,15 +144,15 @@ function ProductCatalog({
       {showGrouped ? (
         // Show grouped by category
         Object.entries(groupedProducts).map(([category, products]) => (
-          <div key={category} className="mb-4 sm:mb-5 last:mb-0">
-            <div className="mb-2 sm:mb-3 px-1">
-              <h3 className="text-sm sm:text-base font-semibold text-neutral-700 flex items-center gap-2">
-                <span className="w-1 h-5 sm:h-6 bg-primary-500 rounded-full"></span>
+          <div key={category} className="mb-2 sm:mb-3 last:mb-0">
+            <div className="mb-1 sm:mb-1.5 px-1">
+              <h3 className="text-xs font-semibold text-neutral-700 flex items-center gap-2">
+                <span className="w-1 h-4 sm:h-5 bg-primary-500 rounded-full"></span>
                 <span>{category}</span>
-                <span className="text-xs sm:text-sm text-neutral-500 font-normal">({products.length})</span>
+                <span className="text-xs text-neutral-500 font-normal">({products.length})</span>
               </h3>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 sm:gap-2">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -167,7 +167,7 @@ function ProductCatalog({
         ))
       ) : (
         // Show flat list when filtered
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 sm:gap-2">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product) => (
               <ProductCard
@@ -240,24 +240,24 @@ function ProductCard({
       tabIndex={0}
       role="button"
       aria-label={`Add ${product.name} to cart - Price: ${price}`}
-      className="group h-full flex flex-col bg-white rounded-xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-md hover:border-primary-300/60 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 touch-manipulation min-w-0"
+      className="group h-full flex flex-col bg-white rounded-lg overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-md hover:border-primary-300/60 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 touch-manipulation min-w-0"
     >
-      {/* Content: name + price - sized for readability at 100% zoom */}
-      <div className="flex flex-col flex-1 p-4 min-w-0">
+      {/* Content: name + price - compact for 100% zoom; 3-col grid, smaller cards */}
+      <div className="flex flex-col flex-1 p-2 min-w-0">
         <h3
-          className="font-bold text-neutral-900 text-base leading-snug line-clamp-2 mb-2 break-words"
+          className="font-bold text-neutral-900 text-xs leading-tight line-clamp-2 mb-1 break-words overflow-hidden min-h-[2rem]"
           title={product.name}
         >
           {product.name}
         </h3>
-        <p className="text-lg font-bold text-primary-600 tracking-tight mb-3">
+        <p className="text-sm font-bold text-primary-600 tracking-tight mb-1.5">
           ₹{price}
         </p>
 
         {/* Quantity controls when in cart; otherwise card click adds to cart */}
         {inCart ? (
-          <div className="flex flex-col gap-1.5 mt-auto">
-            <div className="flex items-center justify-center gap-0.5 bg-primary-50 rounded-lg border border-primary-200/80 overflow-hidden">
+          <div className="flex flex-col gap-0.5 mt-auto">
+            <div className="flex items-center justify-center gap-0.5 bg-primary-50 rounded-md border border-primary-200/80 overflow-hidden">
               <button
                 type="button"
                 data-qty-decrement
@@ -265,12 +265,12 @@ function ProductCard({
                   e.stopPropagation()
                   onDecrementInCart?.(product.id)
                 }}
-                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-sm"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-xs"
                 aria-label="Decrease quantity"
               >
                 <span className="text-xl font-medium leading-none">−</span>
               </button>
-              <span className="min-w-[28px] text-center text-xs font-bold text-primary-700">{totalQty}</span>
+              <span className="min-w-[24px] text-center text-xs font-bold text-primary-700">{totalQty}</span>
               <button
                 type="button"
                 data-qty-increment
@@ -278,13 +278,13 @@ function ProductCard({
                   e.stopPropagation()
                   onProductClick(product)
                 }}
-                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-sm"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-xs"
                 aria-label="Increase quantity"
               >
                 <span className="text-xl font-medium leading-none">+</span>
               </button>
             </div>
-            <span className="text-[10px] text-center text-neutral-500 font-medium">Customise</span>
+            <span className="text-[9px] text-center text-neutral-500 font-medium">Customise</span>
           </div>
         ) : null}
       </div>

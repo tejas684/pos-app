@@ -126,15 +126,15 @@ export default function OrderManagementPanel({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white border-r border-neutral-200 shadow-soft min-w-0 w-full lg:w-full overflow-hidden relative z-10 lg:overflow-x-hidden">
+    <div className="flex-1 flex flex-col h-full bg-white border-r border-neutral-200 shadow-soft min-w-0 w-full md:w-full overflow-hidden relative z-10 md:overflow-x-hidden">
       {/* Order Type Tabs - always visible */}
-      <div className="flex-shrink-0 px-2 sm:px-5 py-2.5 sm:py-3 border-b border-neutral-200 bg-neutral-50/50 flex items-center gap-2 flex-wrap overflow-x-auto scrollbar-hide">
+      <div className="flex-shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 border-b border-neutral-200 bg-neutral-50/50 flex items-center gap-1.5 flex-wrap overflow-x-auto scrollbar-hide">
         <button
           onClick={() => {
             setOrderType('dine-in')
             setSelectedTable('')
           }}
-          className={`px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm sm:text-sm font-medium transition-all active:scale-95 min-h-[44px] sm:min-h-0 touch-manipulation shrink-0 ${
+          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'dine-in'
               ? 'bg-primary-500 text-white shadow-md'
               : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
@@ -147,7 +147,7 @@ export default function OrderManagementPanel({
             setOrderType('take-away')
             setSelectedTable('')
           }}
-          className={`px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm sm:text-sm font-medium transition-all active:scale-95 min-h-[44px] sm:min-h-0 touch-manipulation shrink-0 ${
+          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'take-away'
               ? 'bg-primary-500 text-white shadow-md'
               : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
@@ -160,7 +160,7 @@ export default function OrderManagementPanel({
             setOrderType('delivery')
             setSelectedTable('')
           }}
-          className={`px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm sm:text-sm font-medium transition-all active:scale-95 min-h-[44px] sm:min-h-0 touch-manipulation shrink-0 ${
+          className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'delivery'
               ? 'bg-primary-500 text-white shadow-md'
               : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
@@ -171,7 +171,7 @@ export default function OrderManagementPanel({
         {orderType === 'dine-in' && (
           <button
             onClick={onShowTableModal}
-            className={`inline-flex items-center gap-2 px-4 sm:px-4 py-2.5 sm:py-2 rounded-xl text-sm font-medium transition-all active:scale-95 min-h-[44px] sm:min-h-0 touch-manipulation shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
               selectedTable
                 ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600'
                 : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
@@ -192,7 +192,7 @@ export default function OrderManagementPanel({
 
       {/* Table number badge – show when dine-in and table is selected - always visible */}
       {orderType === 'dine-in' && selectedTable && (
-        <div className="flex-shrink-0 px-2 sm:px-5 py-2 flex items-center gap-2 bg-primary-50 border-b border-primary-100">
+        <div className="flex-shrink-0 px-2 sm:px-5 py-1.5 flex items-center gap-2 bg-primary-50 border-b border-primary-100">
           <span className="text-xs font-medium text-primary-700 uppercase tracking-wide">Order for</span>
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-500 text-white text-sm font-bold shadow-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

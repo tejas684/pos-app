@@ -64,11 +64,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={inter.className}>
-        <AuthProvider>
-          <POSDataProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </POSDataProvider>
-        </AuthProvider>
+        <div className="pos-zoom-wrapper">
+          <AuthProvider>
+            <POSDataProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </POSDataProvider>
+          </AuthProvider>
+        </div>
       </body>
     </html>
   )

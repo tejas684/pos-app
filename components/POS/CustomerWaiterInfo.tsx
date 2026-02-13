@@ -132,16 +132,16 @@ export default function CustomerWaiterInfo({
     </svg>
   )
   const inputBase =
-    'w-full pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white'
+    'w-full pl-2.5 pr-8 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white'
 
   return (
-    <div className="px-3 sm:px-5 py-3 border-b border-gray-200 bg-white">
-      {/* Single row: Waiter (left) | Customer (right) with Edit + Add */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-        {/* Waiter: searchable dropdown with arrow */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:flex-shrink-0">
-          <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Ds Waiter</label>
-          <div className="relative w-full min-w-0 flex-1" ref={waiterDropdownRef}>
+    <div className="px-2 sm:px-3 py-2 border-b border-gray-200 bg-white">
+      {/* Single row: Waiter (left) | Customer (right) - compact for 100% zoom */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
+        {/* Waiter: searchable dropdown with arrow - barik */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:flex-shrink-0 sm:max-w-[42%]">
+          <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Waiter</label>
+          <div className="relative w-full min-w-0 flex-1 sm:max-w-[140px]" ref={waiterDropdownRef}>
             <input
               ref={waiterInputRef}
               type="text"
@@ -179,10 +179,10 @@ export default function CustomerWaiterInfo({
           </div>
         </div>
 
-        {/* Customer: searchable dropdown with arrow + Edit + Add */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-1 min-w-0">
-          <label className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">Customer</label>
-          <div className="relative flex-1 w-full min-w-0" ref={customerDropdownRef}>
+        {/* Customer: searchable dropdown with arrow + Edit + Add - barik */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 flex-1 min-w-0 sm:max-w-[52%]">
+          <label className="text-xs font-medium text-gray-700 whitespace-nowrap">Customer</label>
+          <div className="relative flex-1 w-full min-w-0 sm:max-w-[160px]" ref={customerDropdownRef}>
             <input
               ref={customerInputRef}
               type="text"
@@ -218,15 +218,15 @@ export default function CustomerWaiterInfo({
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1 w-full sm:w-auto shrink-0">
             {canEditCustomer && (
               <button
                 type="button"
                 onClick={() => onShowCustomerModal(selectedCustomer)}
-                className="p-1.5 sm:p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-colors shrink-0"
+                className="p-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-colors shrink-0"
                 title="Edit customer"
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </button>
@@ -234,10 +234,10 @@ export default function CustomerWaiterInfo({
             <button
               type="button"
               onClick={() => onShowCustomerModal()}
-              className="p-1.5 sm:p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-colors shrink-0"
+              className="p-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-primary-600 transition-colors shrink-0"
               title="Add customer"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </button>

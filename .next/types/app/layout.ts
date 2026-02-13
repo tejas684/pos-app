@@ -1,4 +1,4 @@
-// File: C:\Users\Tejas\OneDrive\Desktop\reactnextjs\reactnextjs\app\layout.tsx
+// File: C:\pos-app\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -21,17 +21,24 @@ export default function OrderItemsTable({
 }: OrderItemsTableProps) {
   const hasItems = cartItems.length > 0
   return (
-    <div className={`flex-1 min-h-0 ${hasItems ? 'overflow-y-auto overflow-x-hidden scrollbar-hide' : 'overflow-hidden'}`}>
+    <div className={`flex-1 min-h-0 ${hasItems ? 'overflow-y-auto overflow-x-auto scrollbar-hide' : 'overflow-hidden'}`}>
       <div className="p-3 sm:p-5 min-w-0">
-        <div className="min-w-0 overflow-x-hidden">
-          <table className="w-full min-w-0 table-fixed">
+        <div className="min-w-0 overflow-x-auto">
+          <table className="w-full min-w-[320px] table-fixed">
+            <colgroup>
+              <col className="w-[28%]" />
+              <col className="w-[18%]" />
+              <col className="w-[20%]" />
+              <col className="w-[14%]" />
+              <col className="w-[20%]" />
+            </colgroup>
             <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
               <tr>
-                <th className="w-[34%] px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Product</th>
-                <th className="w-[16%] px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Price</th>
-                <th className="w-[20%] px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Qty.</th>
-                <th className="w-[14%] px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Disc.</th>
-                <th className="w-[16%] px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Total</th>
+                <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Product</th>
+                <th className="px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Price</th>
+                <th className="px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Qty.</th>
+                <th className="px-1 sm:px-2 py-2 sm:py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Disc.</th>
+                <th className="px-1 sm:px-2 py-2 sm:py-3 text-right text-xs sm:text-sm font-semibold text-gray-700">Total</th>
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200">
@@ -66,7 +73,7 @@ export default function OrderItemsTable({
                   : '-'
                 return (
                   <tr key={item.lineItemId} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all animate-in fade-in slide-in-from-left-2">
-                    <td className="px-2 sm:px-3 py-3 align-top overflow-hidden">
+                    <td className="px-2 sm:px-3 py-3 align-top overflow-hidden min-w-0">
                       <div className="font-semibold text-sm text-gray-900 flex items-center gap-2 min-w-0">
                         <span className="truncate" title={item.name}>{item.name}</span>
                         {addingToCart === item.id && (
@@ -79,12 +86,12 @@ export default function OrderItemsTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-1 sm:px-2 py-3 text-right text-sm font-medium text-gray-700 whitespace-nowrap">₹{itemPrice.toFixed(2)}</td>
-                    <td className="px-1 sm:px-2 py-2 sm:py-3">
+                    <td className="px-1 sm:px-2 py-3 text-right text-sm font-medium text-gray-700 whitespace-nowrap overflow-hidden min-w-0 align-top">₹{itemPrice.toFixed(2)}</td>
+                    <td className="px-1 sm:px-2 py-2 sm:py-3 overflow-hidden min-w-0 align-top">
                       {readOnly ? (
                         <span className="text-sm font-bold text-center block">{item.quantity}</span>
                       ) : (
-                        <div className="flex items-center justify-center gap-2 sm:gap-2">
+                        <div className="flex items-center justify-center gap-1 sm:gap-2">
                           <button
                             onClick={() => onUpdateQuantity(item.lineItemId, item.quantity - 1)}
                             className="w-10 h-10 sm:w-7 sm:h-7 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 hover:border-primary-300 active:border-primary-400 transition-all touch-manipulation"
@@ -107,7 +114,7 @@ export default function OrderItemsTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-center">
+                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-center overflow-hidden min-w-0 align-top">
                       {readOnly ? (
                         <span className="text-xs text-gray-600">{discountLabel}</span>
                       ) : (
@@ -120,33 +127,35 @@ export default function OrderItemsTable({
                         </button>
                       )}
                     </td>
-                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-right">
+                    <td className="px-1 sm:px-2 py-2 sm:py-3 text-right overflow-hidden min-w-0 align-top">
                       {readOnly ? (
                         <span className="text-sm font-bold text-gray-900">₹{itemTotal.toFixed(2)}</span>
                       ) : (
-                        <div className="flex items-center justify-end gap-2 sm:gap-2">
-                          <span className="text-sm sm:text-sm font-bold text-gray-900">₹{itemTotal.toFixed(2)}</span>
-                          {onEditItem && (
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-1 sm:gap-2 min-w-0">
+                          <span className="text-sm font-bold text-gray-900 shrink-0 order-2 sm:order-1">₹{itemTotal.toFixed(2)}</span>
+                          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 order-1 sm:order-2">
+                            {onEditItem && (
+                              <button
+                                onClick={() => onEditItem(item)}
+                                className="text-primary-600 hover:text-primary-700 active:text-primary-800 p-1.5 sm:p-1 hover:bg-primary-50 active:bg-primary-100 rounded-lg transition-all touch-manipulation flex items-center justify-center"
+                                title="Edit item"
+                                aria-label="Edit item"
+                              >
+                                <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                            )}
                             <button
-                              onClick={() => onEditItem(item)}
-                              className="text-primary-600 hover:text-primary-700 active:text-primary-800 p-2 sm:p-1 hover:bg-primary-50 active:bg-primary-100 rounded-lg transition-all min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 touch-manipulation flex items-center justify-center"
-                              title="Edit item"
-                              aria-label="Edit item"
+                              onClick={() => onRemoveItem(item.lineItemId)}
+                              className="text-danger-600 hover:text-danger-700 active:text-danger-800 p-1.5 sm:p-1 hover:bg-danger-50 active:bg-danger-100 rounded-lg transition-all touch-manipulation flex items-center justify-center"
+                              aria-label="Remove item"
                             >
-                              <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              <svg className="w-4 h-4 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
-                          )}
-                          <button
-                            onClick={() => onRemoveItem(item.lineItemId)}
-                            className="text-danger-600 hover:text-danger-700 active:text-danger-800 p-2 sm:p-1 hover:bg-danger-50 active:bg-danger-100 rounded-lg transition-all min-w-[40px] min-h-[40px] sm:min-w-0 sm:min-h-0 touch-manipulation flex items-center justify-center"
-                            aria-label="Remove item"
-                          >
-                            <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                          </div>
                         </div>
                       )}
                     </td>

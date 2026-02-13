@@ -92,9 +92,9 @@ export default function ProductCatalogPanel({
   return (
     <div id="product-catalog-panel" className="flex-1 flex flex-col bg-neutral-50/50 min-w-0 w-full max-w-full h-full min-h-0 overflow-hidden relative z-0 isolate">
       {/* Top: Sticky Search Bar - Mobile First */}
-      <div className="flex-shrink-0 bg-white border-b border-neutral-200 shadow-soft sticky top-0 z-20 lg:relative lg:z-auto">
+      <div className="flex-shrink-0 bg-white border-b border-neutral-200 shadow-soft sticky top-0 z-20 md:relative md:z-auto">
         {/* Search input - Always at top */}
-        <div className="px-3 sm:px-4 py-3 sm:py-3.5">
+        <div className="px-3 sm:px-4 py-2.5 sm:py-2.5">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative flex-1">
               <svg
@@ -149,7 +149,7 @@ export default function ProductCatalogPanel({
         </div>
         
         {/* Mobile: Horizontal scrollable category chips - Below search */}
-        <div className="lg:hidden border-t border-neutral-100 bg-white">
+        <div className="md:hidden border-t border-neutral-100 bg-white">
           <div 
             ref={categoryScrollRef}
             className="px-3 py-3 overflow-x-auto scrollbar-hide overscroll-x-contain"
@@ -191,9 +191,9 @@ export default function ProductCatalogPanel({
       {/* Main: Sidebar + Product grid */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative min-w-0">
         {/* Left sidebar – vertical category filters (Desktop only) */}
-        <aside className="hidden lg:flex flex-shrink-0 w-48 bg-white border-r border-neutral-200 py-4 overflow-y-auto min-w-0">
-          <nav className="flex flex-col gap-2 px-3 w-full" aria-label="Product categories">
-            <div className="px-2 py-1.5 mb-1">
+        <aside className="hidden md:flex flex-shrink-0 w-32 bg-white border-r border-neutral-200 py-2 overflow-y-auto min-w-0">
+          <nav className="flex flex-col gap-1.5 px-2 w-full" aria-label="Product categories">
+            <div className="px-2 py-1 mb-1">
               <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">Categories</h3>
             </div>
             {categories.map((category) => {
@@ -203,7 +203,7 @@ export default function ProductCatalogPanel({
                   key={category}
                   onClick={() => setSelectedCategory(category)}
                   className={`
-                    w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all relative
+                    w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all relative
                     ${isSelected
                       ? 'bg-primary-500 text-white shadow-md ring-2 ring-primary-400 ring-offset-2'
                       : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900 active:bg-neutral-300'
@@ -228,7 +228,7 @@ export default function ProductCatalogPanel({
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium bg-neutral-50 text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200 border border-neutral-200 transition-all flex items-center justify-center gap-2"
+                className="mt-1.5 w-full px-3 py-2 rounded-xl text-xs font-medium bg-neutral-50 text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200 border border-neutral-200 transition-all flex items-center justify-center gap-2"
                 type="button"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

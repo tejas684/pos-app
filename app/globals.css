@@ -42,8 +42,9 @@
 
 /* Global Body Styles - Zoom-friendly: uses rem-based spacing */
 html {
-  overflow-x: hidden;
+  overflow: hidden;
   width: 100%;
+  height: 100%;
 }
 body {
   color: rgb(var(--foreground-rgb));
@@ -58,10 +59,35 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   width: 100%;
+  height: 100%;
   position: relative;
 }
+
+/* Full-viewport wrapper: fixed height so 100% zoom has no overlap */
+.pos-zoom-wrapper {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* POS root: fills wrapper; flex + min-h-0 so content does not overflow/overlap */
+.pos-root {
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 
 /* Universal Box Sizing */
 /* Ensures padding and border are included in element width/height */
