@@ -11,7 +11,6 @@ interface ExecutionOrdersSidebarProps {
   onOrderDetails: (order: Order) => void
   onReprintKOT: (order: Order) => void
   onInvoice: (order: Order) => void
-  onAccount: (order: Order) => void
   onCancelOrder: (order: Order) => void
   onClose?: () => void
   /** When true, Order Details button is disabled and shows loading (fetching details from API). */
@@ -23,7 +22,7 @@ interface ExecutionOrdersSidebarProps {
 }
 
 const STATUS_LABELS: Record<Order['status'], string> = {
-  pending: 'Pending',
+  pending: 'Placed',
   preparing: 'Preparing',
   ready: 'Ready',
   served: 'Served',
@@ -43,7 +42,6 @@ export default function ExecutionOrdersSidebar({
   onOrderDetails,
   onReprintKOT,
   onInvoice,
-  onAccount,
   onCancelOrder,
   onClose,
   orderDetailsLoading = false,
@@ -232,132 +230,61 @@ export default function ExecutionOrdersSidebar({
         )}
       </div>
 
-      {/* Selected Order Details Box */}
-      {selectedOrder && (
-        <div className="px-3 py-2 border-t border-neutral-200 bg-white space-y-2">
-          <div className="bg-neutral-50 rounded-xl p-2.5 space-y-1.5 text-sm">
-            <div>
-              <span className="text-neutral-500">Status:</span>{' '}
-              <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-semibold uppercase ${
-                selectedOrder.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                selectedOrder.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                selectedOrder.status === 'ready' ? 'bg-emerald-100 text-emerald-800' :
-                selectedOrder.status === 'served' ? 'bg-violet-100 text-violet-800' :
-                selectedOrder.status === 'completed' ? 'bg-neutral-100 text-neutral-600' :
-                selectedOrder.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                'bg-neutral-100 text-neutral-600'
-              }`}>
-                {getStatusLabel(selectedOrder.status)}
-              </span>
-            </div>
-            <div>
-              <span className="text-neutral-500">Client:</span>{' '}
-              <span className="font-medium text-neutral-800">{selectedOrder.customer}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500">Order:</span>{' '}
-              <span className="font-medium text-neutral-800">{formatOrderNumber(selectedOrder)}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500">Order Type:</span>{' '}
-              <span className="font-medium text-neutral-800">{getOrderTypeLabel(selectedOrder.orderType)}</span>
-            </div>
-            <div>
-              <span className="text-neutral-500">Table:</span>{' '}
-              <span className="font-medium text-neutral-800">{selectedOrder.tableName || 'None'}</span>
-            </div>
-            {selectedOrder.waiter && (
-              <div>
-                <span className="text-neutral-500">Waiter:</span>{' '}
-                <span className="font-medium text-neutral-800">{selectedOrder.waiter}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Order Action Buttons */}
-      <div className="px-2 py-2 border-t border-neutral-200 bg-white space-y-1">
-        {onLoadOrderIntoCart && (
+      {/* Order Action Buttons — one row, small */}
+      <div className="px-2 py-1.5 border-t border-neutral-200 bg-white">
+        <div className="flex flex-wrap items-center gap-1">
           <button
-            onClick={() => selectedOrder && onLoadOrderIntoCart(selectedOrder)}
-            disabled={!selectedOrder || loadingOrderIntoCartId === selectedOrder.id}
-            className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-primary-500 hover:bg-primary-600 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium text-[11px]"
+            onClick={() => selectedOrder && onOrderDetails(selectedOrder)}
+            disabled={!selectedOrder || orderDetailsLoading}
+            className="flex-1 min-w-0 flex items-center justify-center gap-0.5 px-1.5 py-1 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded transition-colors font-medium text-[10px]"
+            title="Order Details"
           >
-            {loadingOrderIntoCartId === selectedOrder?.id ? (
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            {orderDetailsLoading ? (
+              <svg className="w-3 h-3 animate-spin shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             ) : (
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
-            {loadingOrderIntoCartId === selectedOrder?.id ? 'Loading…' : 'Load to cart'}
+            <span className="truncate">{orderDetailsLoading ? '…' : 'Details'}</span>
           </button>
-        )}
-        <button
-          onClick={() => selectedOrder && onOrderDetails(selectedOrder)}
-          disabled={!selectedOrder || orderDetailsLoading}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded-lg transition-colors font-medium text-[11px]"
-        >
-          {orderDetailsLoading ? (
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          <button
+            onClick={() => selectedOrder && onReprintKOT(selectedOrder)}
+            disabled={!selectedOrder}
+            className="flex-1 min-w-0 flex items-center justify-center gap-0.5 px-1.5 py-1 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded transition-colors font-medium text-[10px]"
+            title="Reprint KOT"
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-          ) : (
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <span className="truncate">KOT</span>
+          </button>
+          <button
+            onClick={() => selectedOrder && onInvoice(selectedOrder)}
+            disabled={!selectedOrder}
+            className="flex-1 min-w-0 flex items-center justify-center gap-0.5 px-1.5 py-1 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded transition-colors font-medium text-[10px]"
+            title="Invoice"
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-          )}
-          {orderDetailsLoading ? 'Loading…' : 'Order Details'}
-        </button>
-
-        <button
-          onClick={() => selectedOrder && onReprintKOT(selectedOrder)}
-          disabled={!selectedOrder}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded-lg transition-colors font-medium text-[11px]"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-          </svg>
-          Reprint KOT
-        </button>
-
-        <button
-          onClick={() => selectedOrder && onInvoice(selectedOrder)}
-          disabled={!selectedOrder}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded-lg transition-colors font-medium text-[11px]"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Invoice
-        </button>
-
-        <button
-          onClick={() => selectedOrder && onAccount(selectedOrder)}
-          disabled={!selectedOrder}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-neutral-100 hover:bg-primary-50 hover:text-primary-700 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-neutral-700 rounded-lg transition-colors font-medium text-[11px]"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Account
-        </button>
-
-        <button
-          onClick={() => selectedOrder && onCancelOrder(selectedOrder)}
-          disabled={!selectedOrder}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-danger-50 hover:bg-danger-100 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-danger-700 rounded-lg transition-colors font-medium text-[11px]"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Cancel order
-        </button>
+            <span className="truncate">Invoice</span>
+          </button>
+          <button
+            onClick={() => selectedOrder && onCancelOrder(selectedOrder)}
+            disabled={!selectedOrder}
+            className="flex-1 min-w-0 flex items-center justify-center gap-0.5 px-1.5 py-1 bg-danger-50 hover:bg-danger-100 disabled:bg-neutral-50 disabled:text-neutral-400 disabled:cursor-not-allowed text-danger-700 rounded transition-colors font-medium text-[10px]"
+            title="Cancel order"
+          >
+            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="truncate">Cancel</span>
+          </button>
+        </div>
       </div>
       </div>
     </>

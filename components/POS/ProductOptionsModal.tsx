@@ -69,16 +69,6 @@ const getDefaultSizes = (basePrice: number): ProductSize[] => [
   { id: 'xlarge', name: 'Extra Large', price: 260, color: '#F59E0B' }, // Amber
 ]
 
-// Sample modifiers - in a real app, this would come from the product data
-const defaultModifiers: Modifier[] = [
-  { id: 'mod1', name: 'Beet Salty', price: 25 },
-  { id: 'mod2', name: 'Caeser Salad', price: 50 },
-  { id: 'mod3', name: 'House Salad', price: 40 },
-  { id: 'mod4', name: 'Onion Ring', price: 50 },
-  { id: 'mod5', name: 'Seasoned Fries', price: 70 },
-  { id: 'mod6', name: 'sharmaPlus', price: 60 },
-]
-
 export default function ProductOptionsModal({
   isOpen,
   product,
@@ -88,7 +78,6 @@ export default function ProductOptionsModal({
 }: ProductOptionsModalProps) {
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null)
-  const [selectedModifiers, setSelectedModifiers] = useState<Modifier[]>([])
   const [discountInput, setDiscountInput] = useState('')
   const [notes, setNotes] = useState('')
   const [showSizeDropdown, setShowSizeDropdown] = useState(false)
@@ -117,12 +106,6 @@ export default function ProductOptionsModal({
     return getDefaultSizes(basePrice)
   }, [product])
 
-  // Modifiers: Show all 6 available modifiers
-  const availableModifiers = useMemo(() => {
-    // Always return all 6 modifiers from defaultModifiers
-    return defaultModifiers
-  }, [])
-
   // Reset state when modal opens/closes or product changes
   // If editing, pre-populate with cart item data
   useEffect(() => {
@@ -146,22 +129,10 @@ export default function ProductOptionsModal({
             }
           }
         }
-        
-        // Set selected modifiers
-        if (editingCartItem.modifiers && editingCartItem.modifiers.length > 0) {
-          // Match modifiers by name
-          const matchedModifiers = availableModifiers.filter(mod => 
-            editingCartItem.modifiers?.some(cartMod => cartMod.name === mod.name)
-          )
-          setSelectedModifiers(matchedModifiers)
-        } else {
-          setSelectedModifiers([])
-        }
       } else {
         // New product - reset to defaults; default-select first size
         setQuantity(1)
         setSelectedSize(availableSizes[0] ?? null)
-        setSelectedModifiers([])
         setDiscountInput('')
         setNotes('')
       }
@@ -188,14 +159,9 @@ export default function ProductOptionsModal({
   // This logic works for all product types:
   // - Products with sizes: unitPrice = selectedSize.price (replaces base price)
   // - Products without sizes: unitPrice = product.price (base price)
-  // - Products with modifiers: modifiers are added to unit price
-  // - Products without modifiers: modifierTotal = 0, no effect
   // DO NOT add base + size together - size price REPLACES base price
   const unitPrice = selectedSize ? selectedSize.price : (product?.price || 0)
-  const modifierTotal = selectedModifiers.reduce((sum, mod) => sum + mod.price, 0)
-  
-  // Full unit price includes modifiers (if any)
-  const fullUnitPrice = unitPrice + modifierTotal
+  const fullUnitPrice = unitPrice
 
   // Parse discount input — percentage only (0–100)
   const parsedDiscount = useMemo(() => {
@@ -206,8 +172,7 @@ export default function ProductOptionsModal({
     return { value: num, type: 'percentage' as const }
   }, [discountInput])
 
-  // Line total = (unit price + modifiers) × quantity
-  // This recalculates automatically when quantity, unitPrice, or modifiers change
+  // Line total = unit price × quantity
   const lineTotal = useMemo(() => {
     return fullUnitPrice * quantity
   }, [fullUnitPrice, quantity])
@@ -228,16 +193,6 @@ export default function ProductOptionsModal({
     setShowSizeDropdown(false)
   }
 
-  const handleModifierToggle = (modifier: Modifier) => {
-    setSelectedModifiers(prev => {
-      const exists = prev.find(m => m.id === modifier.id)
-      if (exists) {
-        return prev.filter(m => m.id !== modifier.id)
-      }
-      return [...prev, modifier]
-    })
-  }
-
   const handleAddToCart = () => {
     if (!product) return
 
@@ -254,7 +209,7 @@ export default function ProductOptionsModal({
       quantity,
       category: product.category,
       image: product.image,
-      modifiers: selectedModifiers.map(m => ({ name: m.name, price: m.price })),
+      modifiers: [],
       notes: notes.trim() || undefined,
       discount: parsedDiscount?.value,
       discountType: parsedDiscount?.type,
@@ -414,57 +369,6 @@ export default function ProductOptionsModal({
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
-
-          {/* Modifiers - Vertical list matching "Choose your Crust" style */}
-          {availableModifiers.length > 0 && (
-            <div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">Customise as per your taste</h3>
-              <div className="border-t border-gray-200 my-3" />
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-bold text-gray-800">Choose your Modifiers</label>
-                <span className="text-sm font-semibold text-gray-900">{selectedModifiers.length} selected</span>
-              </div>
-
-              {/* Vertical list: white card, each row = green icon | label | radio-style */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="divide-y divide-gray-100">
-                  {availableModifiers.map((modifier) => {
-                    const isSelected = selectedModifiers.some(m => m.id === modifier.id)
-                    return (
-                      <button
-                        key={modifier.id}
-                        type="button"
-                        onClick={() => handleModifierToggle(modifier)}
-                        className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-gray-50/80 transition-colors"
-                      >
-                        {/* Green-outlined square with solid green circle (vegetarian-style icon) */}
-                        <div className="w-5 h-5 rounded border-2 border-green-500 flex items-center justify-center flex-shrink-0">
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                        </div>
-                        {/* Option label + price */}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-gray-800">{modifier.name}</span>
-                          <span className="text-xs text-gray-500 ml-1">₹{modifier.price.toFixed(2)}</span>
-                        </div>
-                        {/* Radio-style control: orange when selected, grey outline when not */}
-                        <div
-                          className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-colors ${
-                            isSelected
-                              ? 'border-orange-500 bg-orange-500'
-                              : 'border-gray-300 bg-white'
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                          )}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
               </div>
             </div>
           )}

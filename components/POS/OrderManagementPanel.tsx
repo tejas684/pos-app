@@ -190,26 +190,6 @@ export default function OrderManagementPanel({
         )}
       </div>
 
-      {/* Table number badge – show when dine-in and table is selected - always visible */}
-      {orderType === 'dine-in' && selectedTable && (
-        <div className="flex-shrink-0 px-2 sm:px-5 py-1.5 flex items-center gap-2 bg-primary-50 border-b border-primary-100">
-          <span className="text-xs font-medium text-primary-700 uppercase tracking-wide">Order for</span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-500 text-white text-sm font-bold shadow-sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            {selectedTable}
-          </span>
-          <button
-            type="button"
-            onClick={onShowTableModal}
-            className="text-xs font-medium text-primary-600 hover:text-primary-800 underline"
-          >
-            Change
-          </button>
-        </div>
-      )}
-
       {/* Customer & Waiter Info - always visible, never hidden by catalog */}
       <div className="flex-shrink-0">
         <CustomerWaiterInfo

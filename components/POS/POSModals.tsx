@@ -5,7 +5,6 @@ import InvoiceBillModal from '@/components/POS/InvoiceBillModal'
 import DiscountModal from '@/components/POS/DiscountModal'
 import AddCustomerModal from '@/components/POS/AddCustomerModal'
 import type { AddCustomerFormData, CustomerToEdit } from '@/components/POS/AddCustomerModal'
-import KeyboardShortcuts from '@/components/POS/KeyboardShortcuts'
 import TablesModal from '@/components/POS/TablesModal'
 import ProductOptionsModal from '@/components/POS/ProductOptionsModal'
 import RepeatCustomisationModal from '@/components/POS/RepeatCustomisationModal'
@@ -42,9 +41,6 @@ export interface POSModalsProps {
   numberOfPersons: number
   onCloseTable: () => void
   onTablesConfirm: (tableNames: string[], persons: number) => void
-
-  showShortcuts: boolean
-  onCloseShortcuts: () => void
 
   showProductOptionsModal: boolean
   productToCustomize: { id: string; name: string; price: number; category?: string; image?: string; sizes?: { id: string; name: string; price: number }[]; modifiers?: { id: string; name: string; price: number }[] } | null
@@ -99,9 +95,6 @@ export default function POSModals({
   numberOfPersons,
   onCloseTable,
   onTablesConfirm,
-
-  showShortcuts,
-  onCloseShortcuts,
 
   showProductOptionsModal,
   productToCustomize,
@@ -172,8 +165,6 @@ export default function POSModals({
           onCloseTable()
         }}
       />
-
-      <KeyboardShortcuts isOpen={showShortcuts} onClose={onCloseShortcuts} />
 
       <ProductOptionsModal
         isOpen={showProductOptionsModal}

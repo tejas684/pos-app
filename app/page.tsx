@@ -60,8 +60,6 @@ export default function POSPage() {
     setShowTableModal,
     showQuickStats,
     setShowQuickStats,
-    showShortcuts,
-    setShowShortcuts,
     quickStats,
     subtotal,
     discountAmount,
@@ -275,33 +273,12 @@ export default function POSPage() {
             quickStats={quickStats}
             currentTime={currentTime}
             showQuickStats={showQuickStats}
-            showShortcuts={showShortcuts}
             showExecutionOrders={pageState.showExecutionOrders}
             onToggleQuickStats={() => setShowQuickStats(!showQuickStats)}
             onToggleExecutionOrders={() => pageState.setShowExecutionOrders(!pageState.showExecutionOrders)}
-            onShowShortcuts={() => setShowShortcuts(true)}
             onShowCustomerModal={() => {
               pageState.setCustomerToEdit(null)
               setShowCustomerModal(true)
-            }}
-            onScrollToProducts={() => {
-              const productPanel = document.getElementById('product-catalog-panel')
-              if (productPanel) {
-                productPanel.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
-                setTimeout(() => {
-                  const searchInput = productPanel.querySelector(
-                    'input[aria-label="Search products"]'
-                  ) as HTMLInputElement
-                  if (searchInput) {
-                    searchInput.focus()
-                    if (window.innerWidth < 768) {
-                      setTimeout(() => {
-                        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
-                      }, 150)
-                    }
-                  }
-                }, 400)
-              }
             }}
           />
         </div>
@@ -426,8 +403,6 @@ export default function POSPage() {
               'success'
             )
           }}
-          showShortcuts={showShortcuts}
-          onCloseShortcuts={() => setShowShortcuts(false)}
           showProductOptionsModal={showProductOptionsModal}
           productToCustomize={productToCustomize}
           editingCartItem={pageState.editingCartItem?.item ?? null}

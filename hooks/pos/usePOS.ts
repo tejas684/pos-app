@@ -59,7 +59,6 @@ export function usePOS() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [showQuickStats, setShowQuickStats] = useState(false)
   const [showQuickActions, setShowQuickActions] = useState(false)
-  const [showShortcuts, setShowShortcuts] = useState(false)
   const [showProductOptionsModal, setShowProductOptionsModal] = useState(false)
   const [productToCustomize, setProductToCustomize] = useState<ProductForCustomization | null>(null)
   const [showRepeatCustomisationModal, setShowRepeatCustomisationModal] = useState(false)
@@ -87,18 +86,30 @@ export function usePOS() {
     (product: ProductForCustomization) => {
       const lastItem = getLastCartItemForProduct(product.id)
       if (lastItem) {
-        setRepeatCustomisationContext({ product, cartItem: lastItem })
-        setShowRepeatCustomisationModal(true)
+        addToCart({
+          id: lastItem.id,
+          name: lastItem.name,
+          price: lastItem.price,
+          quantity: 1,
+          category: lastItem.category,
+          image: lastItem.image,
+          modifiers: lastItem.modifiers ?? [],
+          notes: lastItem.notes,
+          selectedSize: lastItem.selectedSize,
+        })
         return
       }
-      if (requiresCustomization(product)) {
-        setProductToCustomize(product)
-        setShowProductOptionsModal(true)
-      } else {
-        addToCart(product)
-      }
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        category: product.category,
+        image: product.image,
+        modifiers: [],
+      })
     },
-    [requiresCustomization, getLastCartItemForProduct, addToCart]
+    [getLastCartItemForProduct, addToCart]
   )
 
   const repeatCustomisationAddOne = useCallback(() => {
@@ -168,11 +179,8 @@ export function usePOS() {
     if (typeof window === 'undefined' || !isMounted) return
     const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-        setShowShortcuts((prev) => !prev)
-      } else if (e.key === 'Escape') {
-        if (showShortcuts) setShowShortcuts(false)
-        else if (cartItems.length > 0) {
+      if (e.key === 'Escape') {
+        if (cartItems.length > 0) {
           setCartItems([])
           setSelectedTable('')
           setDiscount(0)
@@ -183,7 +191,7 @@ export function usePOS() {
     }
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [showShortcuts, showQuickStats, cartItems.length, isMounted, setCartItems])
+  }, [showQuickStats, cartItems.length, isMounted, setCartItems])
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isMounted) return
@@ -714,8 +722,6 @@ export function usePOS() {
     setShowQuickStats,
     showQuickActions,
     setShowQuickActions,
-    showShortcuts,
-    setShowShortcuts,
     showProductOptionsModal,
     setShowProductOptionsModal,
     productToCustomize,

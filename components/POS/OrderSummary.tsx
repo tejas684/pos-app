@@ -114,12 +114,6 @@ export default function OrderSummary({
           </button>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-0.5 w-full sm:w-auto">
-          {selectedTable && (
-            <div className="flex items-center gap-2 mb-2 w-full sm:justify-end">
-              <span className="text-sm font-semibold text-gray-600">Table no:</span>
-              <span className="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-lg text-sm font-medium">{selectedTable}</span>
-            </div>
-          )}
           {/* Breakdown: Subtotal ± Order discount + Charge + Tips = Total */}
           {cartItemsCount > 0 && (
             <div className="text-left sm:text-right text-xs text-gray-500 space-y-0.5 mb-1 w-full">
@@ -153,54 +147,51 @@ export default function OrderSummary({
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-1.5 sm:justify-start">
+      {/* Cancel | Payment (middle) | Update / Place Order */}
+      <div className="flex items-center gap-2 w-full">
         <button
-              onClick={onClearCart}
-              className="px-2 py-1.5 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 active:bg-red-700 transition-all flex items-center justify-center gap-1 text-[11px] min-h-[30px] sm:min-h-0 touch-manipulation shadow-sm hover:shadow-md shrink-0"
-              title="Clear Cart (Esc)"
-            >
-              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span className="hidden sm:inline">Cancel</span>
-              <span className="sm:hidden">X</span>
-            </button>
-            <button
-              onClick={onShowPaymentModal}
-              className="px-2 py-1.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 active:bg-blue-700 transition-all flex items-center justify-center gap-1 text-[11px] min-h-[30px] sm:min-h-0 touch-manipulation shadow-sm hover:shadow-md shrink-0"
-              title="Payment"
-            >
-              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden sm:inline">Payment</span>
-              <span className="sm:hidden">Pay</span>
-            </button>
-            {isModifyingOrder && onUpdateOrder ? (
-              <button
-                onClick={onUpdateOrder}
-                className="px-2 py-1.5 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 active:bg-green-700 transition-all flex items-center justify-center gap-1 text-[11px] min-h-[30px] sm:min-h-0 touch-manipulation shadow-sm hover:shadow-md shrink-0"
-                title="Update Order (Enter)"
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span className="hidden sm:inline">Update Order</span>
-                <span className="sm:hidden">Update</span>
-              </button>
-            ) : (
-              <button
-                onClick={onPlaceOrder}
-                className="px-2 py-1.5 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 active:bg-green-700 transition-all flex items-center justify-center gap-1 text-[11px] min-h-[30px] sm:min-h-0 touch-manipulation shadow-sm hover:shadow-md shrink-0"
-                title="Place Order (Enter)"
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span className="hidden sm:inline">Place Order</span>
-                <span className="sm:hidden">Place</span>
-              </button>
-            )}
+          onClick={onClearCart}
+          className="flex-1 min-w-0 flex items-center justify-center gap-1 px-2 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 active:bg-red-700 transition-all text-xs touch-manipulation"
+          title="Clear Cart (Esc)"
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span className="truncate">Cancel</span>
+        </button>
+        <button
+          onClick={onShowPaymentModal}
+          className="flex-1 min-w-0 flex items-center justify-center gap-1 px-2 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 active:bg-primary-700 transition-all text-xs touch-manipulation shadow-sm"
+          title="Payment"
+        >
+          <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span className="truncate">Payment</span>
+        </button>
+        {isModifyingOrder && onUpdateOrder ? (
+          <button
+            onClick={onUpdateOrder}
+            className="flex-1 min-w-0 flex items-center justify-center gap-1 px-2 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 active:bg-green-700 transition-all text-xs touch-manipulation shadow-sm"
+            title="Update Order (Enter)"
+          >
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="truncate">Update</span>
+          </button>
+        ) : (
+          <button
+            onClick={onPlaceOrder}
+            className="flex-1 min-w-0 flex items-center justify-center gap-1 px-2 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 active:bg-green-700 transition-all text-xs touch-manipulation shadow-sm"
+            title="Place Order (Enter)"
+          >
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span className="truncate">Place Order</span>
+          </button>
+        )}
       </div>
 
       {/* Cart Item Options Modal */}

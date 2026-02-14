@@ -7,8 +7,7 @@
  * 
  * Features:
  * 1. Quick Stats Toggle - Shows/hides statistics panel (Active Orders, Revenue, etc.)
- * 2. Keyboard Shortcuts Button - Shows keyboard shortcuts help modal
- * 4. Customer Info Button - Opens customer selection modal
+ * 2. Customer Info Button - Opens customer selection modal
  * 5. Real-time Clock - Displays current time
  * 
  * Design:
@@ -52,10 +51,8 @@ interface QuickStats {
  * - currentTime: Current date/time for clock display
  * - showQuickStats: Whether stats panel is visible
  * - showExecutionOrders: Whether execution orders sidebar is visible
- * - showShortcuts: Whether shortcuts modal is open
  * - onToggleQuickStats: Callback to toggle stats panel
  * - onToggleExecutionOrders: Callback to toggle execution orders sidebar
- * - onShowShortcuts: Callback to show keyboard shortcuts modal
  * - onShowCustomerModal: Callback to show customer selection modal
  */
 interface POSHeaderProps {
@@ -63,12 +60,9 @@ interface POSHeaderProps {
   currentTime: Date | null
   showQuickStats: boolean
   showExecutionOrders: boolean
-  showShortcuts: boolean
   onToggleQuickStats: () => void
   onToggleExecutionOrders: () => void
-  onShowShortcuts: () => void
   onShowCustomerModal: () => void
-  onScrollToProducts?: () => void
 }
 
 export default function POSHeader({
@@ -78,9 +72,7 @@ export default function POSHeader({
   showExecutionOrders,
   onToggleQuickStats,
   onToggleExecutionOrders,
-  onShowShortcuts,
   onShowCustomerModal,
-  onScrollToProducts,
 }: POSHeaderProps) {
   const router = useRouter()
   const { user, logout } = useAuth()
@@ -126,20 +118,6 @@ export default function POSHeader({
           </span>
         )}
       </button>
-      
-      {/* Products Button - Prominent on Mobile */}
-      {onScrollToProducts && (
-        <button
-          onClick={onScrollToProducts}
-          className="px-2 sm:px-3 py-1.5 sm:py-1.5 bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-lg font-semibold hover:from-accent-600 hover:to-accent-700 transition-all shadow-sm active:scale-95 flex items-center gap-1 text-xs min-h-[34px] sm:min-h-0 touch-manipulation shrink-0"
-          title="View Products (P)"
-        >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-          </svg>
-          <span>Products</span>
-        </button>
-      )}
       <button
         onClick={onShowCustomerModal}
         className="hidden sm:flex px-3 py-1.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-glow transition-all shadow-sm active:scale-95 items-center gap-1.5 text-xs"
@@ -149,14 +127,6 @@ export default function POSHeader({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
         <span className="hidden md:inline">Customer</span>
-      </button>
-      <button 
-        className="hidden md:flex px-3 py-1.5 bg-white text-neutral-700 rounded-lg font-semibold hover:bg-neutral-50 transition-all shadow-sm border border-neutral-200/50 active:scale-95"
-        title="Split Order (/)"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-        </svg>
       </button>
       <div className="flex-1"></div>
       <button
