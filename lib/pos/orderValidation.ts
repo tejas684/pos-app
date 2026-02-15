@@ -3,7 +3,7 @@
  * Used by POS page to avoid duplicating validation logic.
  */
 
-import { getApiCustomerFullName } from '@/lib/api/pos'
+import { getApiCustomerFullName, type ApiCustomer } from '@/lib/api/pos'
 import { getCustomerFullNameForEdit } from '@/lib/pos/customerUtils'
 import type { CustomerToEdit } from '@/components/POS/AddCustomerModal'
 
@@ -27,7 +27,7 @@ export function validateWaiterAndCustomer(
   const waiterMatch = posData.waiters.find((w) => (w.name ?? String(w.id)) === waiter)
   const selectedName = customer.trim()
   const apiMatch = posData.customers.find(
-    (c) => getApiCustomerFullName(c).toLowerCase() === selectedName.toLowerCase()
+    (c) => getApiCustomerFullName({ ...c, id: String(c.id) } as ApiCustomer).toLowerCase() === selectedName.toLowerCase()
   )
   const newMatch = newlyAddedCustomers.find(
     (c) => getCustomerFullNameForEdit(c).toLowerCase() === selectedName.toLowerCase()

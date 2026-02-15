@@ -124,36 +124,36 @@ export default function POSPage() {
     activeOrders
   )
 
-  const apiCustomers = (() => {
-    const merged = posData.customers.map((c) => {
+  const apiCustomers: CustomerToEdit[] = (() => {
+    const merged = posData.customers.map((c): CustomerToEdit => {
       const added = pageState.newlyAddedCustomers.find(
         (n) => String(n.id) === String(c.id) || (n.phone && c.phone && n.phone === c.phone)
       )
       if (added)
         return {
-          id: c.id,
+          id: String(c.id),
           name: added.name ?? '',
           last_name: added.last_name ?? '',
           phone: added.phone ?? c.phone ?? '',
           email: c.email,
         }
       return {
-        id: c.id,
+        id: String(c.id),
         name: c.name ?? '',
         last_name: c.last_name ?? '',
         phone: c.phone ?? '',
         email: c.email,
       }
     })
-    const addedOnly = pageState.newlyAddedCustomers
+    const addedOnly: CustomerToEdit[] = pageState.newlyAddedCustomers
       .filter(
         (n) =>
           !posData.customers.some(
             (c) => String(c.id) === String(n.id) || (c.phone != null && n.phone && c.phone === n.phone)
           )
       )
-      .map((n) => ({
-        id: n.id,
+      .map((n): CustomerToEdit => ({
+        id: String(n.id),
         name: n.name ?? '',
         last_name: n.last_name ?? '',
         phone: n.phone ?? '',

@@ -77,7 +77,7 @@ export interface POSMainContentProps {
   handleApplyDiscount: (value: number, type: 'percentage' | 'fixed') => void
   setTips: (v: number) => void
   newlyAddedCustomers: CustomerToEdit[]
-  apiCustomers: { id: string | number; name: string; last_name: string; phone: string; email?: string }[]
+  apiCustomers: CustomerToEdit[]
 }
 
 export default function POSMainContent({
