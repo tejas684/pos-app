@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import ExecutionOrdersSidebar from '@/components/POS/ExecutionOrdersSidebar'
 import OrderManagementPanel from '@/components/POS/OrderManagementPanel'
-import POSMobileDashboard from '@/components/POS/POSMobileDashboard'
+import POSMobileDashboard, { type QuickStats } from '@/components/POS/POSMobileDashboard'
 import ProductCatalogPanel from '@/components/POS/ProductCatalogPanel'
 import { fetchOrderDetails } from '@/lib/api/pos'
 import type { Order } from '@/types/pos'
@@ -38,7 +38,7 @@ export interface POSMainContentProps {
   setShowPaymentModal: (v: boolean) => void
   orders: Order[]
   tables: import('@/types/pos').Table[]
-  quickStats: { activeOrders: number }
+  quickStats: QuickStats
   orderType: import('@/types/pos').OrderType
   setOrderType: (t: import('@/types/pos').OrderType) => void
   selectedTable: string
@@ -60,7 +60,10 @@ export interface POSMainContentProps {
   orderBeingModified: Order | null | undefined
   updateCartItem: (lineItemId: string, quantity: number) => void
   removeFromCart: (lineItemId: string) => void
-  updateCartItemFull: (lineItemId: string, item: import('@/types/pos').CartItem) => void
+  updateCartItemFull: (
+    lineItemId: string,
+    updates: { quantity: number; discount?: number; discountType?: 'percentage' | 'fixed'; notes?: string }
+  ) => void
   clearCart: () => void
   handleCancelOrder: (orderId: string) => void
   onPlaceOrder: () => void
