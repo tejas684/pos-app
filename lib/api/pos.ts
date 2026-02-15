@@ -322,7 +322,7 @@ export async function updateStoreCustomer(
   return apiPut<UpdateStoreCustomerResponse>(`api/update/customers/${encodeURIComponent(customerId)}`, requestBody)
 }
 
-export async function fetchDisplayOrders(): Promise<ApiDisplayOrder[]> {
+async function fetchDisplayOrdersDirect(): Promise<ApiDisplayOrder[]> {
   const data = await apiGet<{ data?: ApiDisplayOrder[]; orders?: ApiDisplayOrder[] } | ApiDisplayOrder[]>(
     'api/admin/orders/display'
   )
@@ -334,6 +334,30 @@ export async function fetchDisplayOrders(): Promise<ApiDisplayOrder[]> {
     return (data as { orders: ApiDisplayOrder[] }).orders
   }
   return []
+}
+
+/** Fetch display orders – uses proxy when in browser to enrich with customer names from customer_id */
+export async function fetchDisplayOrders(): Promise<ApiDisplayOrder[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const token = localStorage.getItem('pos_token')
+      if (token) {
+        const base = window.location.origin
+        const res = await fetch(`${base}/api/display-orders`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) return data
+          if (data?.data && Array.isArray(data.data)) return data.data
+          if (data?.orders && Array.isArray(data.orders)) return data.orders
+        }
+      }
+    } catch {
+      // Fall through to direct fetch
+    }
+  }
+  return fetchDisplayOrdersDirect()
 }
 
 /** Raw table from /api/admin/tables – API may use different keys */
@@ -636,7 +660,9 @@ export function mapPlaceOrderResponseToOrder(
   const id = raw.order_id != null ? String(raw.order_id) : raw.id != null ? String(raw.id) : ''
   const orderNumber = raw.order_no != null ? String(raw.order_no) : raw.order_number != null ? String(raw.order_number) : undefined
   const orderType = (raw.order_type as OrderType) || 'dine-in'
-  const status = (raw.status as Order['status']) || 'pending'
+  // Resolve status from multiple possible API keys (status, order_status, etc.) and normalize
+  const rawStatusVal = getOrderStatusFromApi(raw as unknown as ApiDisplayOrder)
+  const status = normalizeOrderStatus(rawStatusVal) as Order['status']
   const total = Number(raw.total ?? raw.total_price ?? 0)
   const tableNumber = raw.table_number != null ? String(raw.table_number) : undefined
   const tableName = raw.table_name != null && String(raw.table_name).trim() !== ''

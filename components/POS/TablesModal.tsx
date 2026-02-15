@@ -77,14 +77,19 @@ export default function TablesModal({
   const totalSeatCapacity = selectedTables.reduce((sum, t) => sum + t.capacity, 0)
   const personsNum = Math.max(0, parseInt(numberOfPersons, 10) || 0)
 
+  const tableRequired = selectedTableIds.length === 0
+  const personsRequired = numberOfPersons.trim() === '' || personsNum <= 0
+  const isValid = !tableRequired && !personsRequired
+
   const toggleTable = (table: Table) => {
     if (table.status !== 'available') return
     setSelectedTableIds((prev) =>
-      prev.includes(table.id) ? prev.filter((id) => id !== table.id) : [...prev, table.id]
+      prev.includes(table.id) ? [] : [table.id]
     )
   }
 
   const handleConfirm = () => {
+    if (!isValid) return
     const names = selectedTables.map((t) => t.name)
     onConfirm(names, personsNum)
     onClose()
@@ -140,7 +145,7 @@ export default function TablesModal({
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-800 mb-2">Select Tables (multiple)</h3>
+              <h3 className="text-sm font-semibold text-slate-800 mb-2">Select Table <span className="text-red-500">*</span></h3>
               <div className="flex flex-wrap gap-3">
                 {tablesInArea.map((table) => {
                   const isSelected = selectedTableIds.includes(table.id)
@@ -167,6 +172,9 @@ export default function TablesModal({
                 {tablesInArea.length === 0 && (
                   <p className="text-sm text-slate-500 py-2">No tables in this area.</p>
                 )}
+                {tableRequired && tablesInArea.length > 0 && (
+                  <p className="text-xs text-red-600 mt-2">Please select a table</p>
+                )}
               </div>
             </div>
           </div>
@@ -180,23 +188,30 @@ export default function TablesModal({
             </div>
             <div className="mb-5">
               <label htmlFor="number-of-persons" className="block text-sm font-semibold text-slate-800 mb-1.5">
-                Number of Persons
+                Number of Persons <span className="text-red-500">*</span>
               </label>
               <input
                 id="number-of-persons"
                 type="number"
-                min={0}
+                min={1}
                 value={numberOfPersons}
                 onChange={(e) => setNumberOfPersons(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition bg-white"
-                placeholder="0"
+                className={`w-full px-4 py-2.5 border-2 rounded-xl text-slate-900 focus:ring-2 outline-none transition bg-white ${
+                  personsRequired ? 'border-red-400 focus:border-red-500 focus:ring-red-200' : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-200'
+                }`}
+                placeholder="Enter number"
+                required
               />
+              {personsRequired && (
+                <p className="mt-1 text-xs text-red-600">Number of persons is required (minimum 1)</p>
+              )}
             </div>
             <div className="flex flex-col gap-2 mt-auto pt-4">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="w-full px-5 py-3 rounded-xl text-sm font-semibold border-2 border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-md"
+                disabled={!isValid}
+                className="w-full px-5 py-3 rounded-xl text-sm font-semibold border-2 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:border-slate-300 border-emerald-600 bg-emerald-600 text-white hover:enabled:bg-emerald-700"
               >
                 Confirm Tables
               </button>

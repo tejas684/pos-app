@@ -9,6 +9,7 @@ import {
   fetchDisplayOrders,
   normalizeOrderStatus,
   getOrderStatusFromApi,
+  getApiCustomerFullName,
   type ApiProduct,
   type ApiCategory,
   type ApiWaiter,
@@ -18,7 +19,40 @@ import {
 import type { Order, CartItem, OrderType } from '@/types/pos'
 import { useAuth } from '@/contexts/AuthContext'
 
-function mapApiOrderToOrder(api: ApiDisplayOrder): Order {
+/** Extract customer display name from API order – supports string, object, customer_name, or customer_id lookup */
+function getCustomerNameFromApiOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): string {
+  const raw = api as Record<string, unknown>
+  // Direct string fields (multiple common API formats)
+  const strFields = ['customer', 'customer_name', 'customerName', 'Customer']
+  for (const key of strFields) {
+    const val = raw[key]
+    if (typeof val === 'string' && val.trim()) return val.trim()
+  }
+  // Object with name (nested customer)
+  const custObj = raw.customer ?? raw.Customer
+  if (custObj && typeof custObj === 'object' && !Array.isArray(custObj)) {
+    const o = custObj as Record<string, unknown>
+    const name = String(o.name ?? o.first_name ?? o.firstName ?? o.full_name ?? '').trim()
+    const lastName = String(o.last_name ?? o.lastName ?? o.lastname ?? '').trim()
+    const full = [name, lastName].filter(Boolean).join(' ')
+    if (full) return full
+    if (name) return name
+  }
+  // Resolve customer_id from customers list (check multiple possible keys)
+  let customerId = raw.customer_id ?? raw.customerId ?? raw.user_id ?? raw.guest_id
+  if (customerId == null && custObj && typeof custObj === 'object' && !Array.isArray(custObj)) {
+    const o = custObj as Record<string, unknown>
+    customerId = o.id ?? o.customer_id ?? o.customerId
+  }
+  if (customerId != null && customers.length > 0) {
+    const idStr = String(customerId)
+    const match = customers.find((c) => String(c.id) === idStr)
+    if (match) return getApiCustomerFullName(match)
+  }
+  return 'Walk-in Customer'
+}
+
+function mapApiOrderToOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): Order {
   const apiStatus = getOrderStatusFromApi(api)
   const status = normalizeOrderStatus(apiStatus)
   const orderType = (api.order_type ?? api.orderType ?? 'dine-in') as OrderType
@@ -63,7 +97,7 @@ function mapApiOrderToOrder(api: ApiDisplayOrder): Order {
     tableId: tableNumber,
     tableName: tableName ?? (tableNumber ? `Table ${tableNumber}` : undefined),
     orderType,
-    customer: String(api.customer ?? 'Walk-in Customer'),
+    customer: getCustomerNameFromApiOrder(api, customers),
     items,
     status,
     total,
@@ -119,7 +153,7 @@ export function POSDataProvider({ children }: { children: React.ReactNode }) {
         fetchCustomers(),
         fetchDisplayOrders(),
       ])
-      const displayOrders = displayOrdersRaw.map(mapApiOrderToOrder)
+      const displayOrders = displayOrdersRaw.map((api) => mapApiOrderToOrder(api, customers))
       setState((prev) => ({
         ...prev,
         products,

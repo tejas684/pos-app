@@ -168,6 +168,8 @@ export interface Order {
   tips?: number
   createdAt: Date
   waiter?: string
+  /** Area for table (e.g. "Garden", "Hall") – shown on KOT with table. */
+  area?: string
   /** Set when order is paid/completed via Finalize Sale. */
   payment?: OrderPayment
 }

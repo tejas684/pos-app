@@ -55,17 +55,18 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
   const [isPrinting, setIsPrinting] = useState(false)
 
   const orderNumber = formatOrderNumber(order)
-  const charge = order.charge ?? 0
   const tips = order.tips ?? 0
+  const charge = order.charge ?? 0
   const orderDiscount = order.discount ?? 0
   const paidAmount = order.payment?.amount ?? 0
   const changeAmount = order.payment?.change ?? 0
 
+  // Items total = sum of (item price × qty) after item-level discounts (not pre-discount line total)
   const { itemsTotal } = useMemo(() => {
     let total = 0
     for (const item of order.items ?? []) {
-      const { lineTotal } = getItemLineTotals(item)
-      total += lineTotal
+      const { totalAfterDiscount } = getItemLineTotals(item)
+      total += totalAfterDiscount
     }
     return { itemsTotal: total }
   }, [order.items])

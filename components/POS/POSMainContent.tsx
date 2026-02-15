@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import ExecutionOrdersSidebar from '@/components/POS/ExecutionOrdersSidebar'
 import OrderManagementPanel from '@/components/POS/OrderManagementPanel'
 import POSMobileDashboard from '@/components/POS/POSMobileDashboard'
@@ -36,6 +37,7 @@ export interface POSMainContentProps {
   setOrderToPay: (order: Order | null) => void
   setShowPaymentModal: (v: boolean) => void
   orders: Order[]
+  tables: import('@/types/pos').Table[]
   quickStats: { activeOrders: number }
   orderType: import('@/types/pos').OrderType
   setOrderType: (t: import('@/types/pos').OrderType) => void
@@ -53,7 +55,6 @@ export interface POSMainContentProps {
   discountType: 'percentage' | 'fixed'
   discountAmount: number
   tax: number
-  charge: number
   tips: number
   taxRate: number
   orderBeingModified: Order | null | undefined
@@ -71,7 +72,6 @@ export interface POSMainContentProps {
   decrementProductInCart: (productId: string) => void
   setShowTableModal: (v: boolean) => void
   handleApplyDiscount: (value: number, type: 'percentage' | 'fixed') => void
-  setCharge: (v: number) => void
   setTips: (v: number) => void
   newlyAddedCustomers: CustomerToEdit[]
   apiCustomers: { id: string | number; name: string; last_name: string; phone: string; email?: string }[]
@@ -101,6 +101,7 @@ export default function POSMainContent({
   setOrderToPay,
   setShowPaymentModal,
   orders,
+  tables,
   quickStats,
   orderType,
   setOrderType,
@@ -118,7 +119,6 @@ export default function POSMainContent({
   discountType,
   discountAmount,
   tax,
-  charge,
   tips,
   taxRate,
   orderBeingModified,
@@ -136,10 +136,15 @@ export default function POSMainContent({
   decrementProductInCart,
   setShowTableModal,
   handleApplyDiscount,
-  setCharge,
   setTips,
   apiCustomers,
 }: POSMainContentProps) {
+  const selectedExecutionOrder = useMemo(
+    () => (selectedExecutionOrderId ? orders.find((o) => o.id === selectedExecutionOrderId) ?? null : null),
+    [orders, selectedExecutionOrderId]
+  )
+  const orderForActions = orderBeingModified ?? selectedExecutionOrder ?? null
+
   return (
     <div className="flex-1 flex flex-col md:flex-row min-h-0 min-w-0 w-full overflow-hidden gap-0 shrink-0">
       {/* Left: Execution Orders sidebar */}
@@ -147,44 +152,13 @@ export default function POSMainContent({
         {showExecutionOrders || mobileActivePanel === 'execution' ? (
           <ExecutionOrdersSidebar
             orders={orders}
+            tables={tables}
             selectedOrderId={selectedExecutionOrderId}
             onSelectOrder={setSelectedExecutionOrderId}
             onRefresh={async () => {
               await posData.refetch()
               showToast('Orders refreshed', 'success')
             }}
-            onOrderDetails={async (order) => {
-              setOrderDetailsLoading(true)
-              try {
-                const { order: detailsOrder } = await fetchOrderDetails(order.id)
-                setSelectedOrderForDetails(detailsOrder)
-                setShowOrderDetailsModal(true)
-              } catch {
-                showToast('Failed to load order details', 'error')
-              } finally {
-                setOrderDetailsLoading(false)
-              }
-            }}
-            onReprintKOT={(order) => setLastPlacedOrder(order)}
-            onInvoice={async (order) => {
-              setLastPlacedOrder(null)
-              setOrderToPay(order)
-              setShowPaymentModal(true)
-              if ((order.items ?? []).length === 0) {
-                try {
-                  const { order: detailsOrder } = await fetchOrderDetails(order.id)
-                  setOrderToPay(detailsOrder)
-                } catch {
-                  showToast('Could not load order details', 'error')
-                }
-              }
-            }}
-            onCancelOrder={(order) => {
-              if (confirm(`Are you sure you want to cancel order ${order.id}?`)) {
-                handleCancelOrder(order.id)
-              }
-            }}
-            orderDetailsLoading={orderDetailsLoading}
             onLoadOrderIntoCart={async (order) => {
               setLoadingOrderIntoCartId(order.id)
               try {
@@ -222,6 +196,7 @@ export default function POSMainContent({
               orderType={orderType}
               setOrderType={setOrderType}
               selectedTable={selectedTable}
+              tables={tables}
               setSelectedTable={setSelectedTable}
               customer={customer}
               setCustomer={setCustomer}
@@ -235,7 +210,6 @@ export default function POSMainContent({
               discountType={discountType}
               totalDiscount={discountAmount}
               tax={tax}
-              charge={charge}
               tips={tips}
               taxRate={taxRate}
               isModifyingOrder={!!orderBeingModified}
@@ -248,10 +222,6 @@ export default function POSMainContent({
                   handleCancelOrder(orderBeingModified.id)
                 }
               } : undefined}
-              onShowPaymentModal={() => {
-                setLastPlacedOrder(null)
-                setShowPaymentModal(true)
-              }}
               onPlaceOrder={onPlaceOrder}
               onUpdateOrder={onUpdateOrder}
               onShowCustomerModal={(c) => {
@@ -260,7 +230,6 @@ export default function POSMainContent({
               }}
               onShowTableModal={() => setShowTableModal(true)}
               onUpdateDiscount={(value) => handleApplyDiscount(value, 'percentage')}
-              onUpdateCharge={setCharge}
               onUpdateTips={setTips}
               onEditItemWithProductModal={(item, product) => {
                 setEditingCartItem({ item, product })
@@ -269,6 +238,50 @@ export default function POSMainContent({
               }}
               waiterOptions={posData.waiters.map((w) => w.name ?? String(w.id))}
               apiCustomers={apiCustomers}
+              orderForActions={orderForActions}
+              selectedExecutionOrderId={selectedExecutionOrderId}
+              orderDetailsLoading={orderDetailsLoading}
+              onOrderDetails={async (order) => {
+                setOrderDetailsLoading(true)
+                try {
+                  const { order: detailsOrder } = await fetchOrderDetails(order.id)
+                  setSelectedOrderForDetails(detailsOrder)
+                  setShowOrderDetailsModal(true)
+                } catch {
+                  showToast('Failed to load order details', 'error')
+                } finally {
+                  setOrderDetailsLoading(false)
+                }
+              }}
+              onReprintKOT={async (order) => {
+                // Use same KOT modal as after order placed: open KitchenOrderTicket with full order
+                try {
+                  const { order: detailsOrder } = await fetchOrderDetails(order.id)
+                  setLastPlacedOrder(detailsOrder)
+                } catch {
+                  showToast('Failed to load order for KOT', 'error')
+                }
+              }}
+              onInvoice={async (order) => {
+                setLastPlacedOrder(null)
+                setOrderToPay(order)
+                setShowPaymentModal(true)
+                if ((order.items ?? []).length === 0) {
+                  try {
+                    const { order: detailsOrder } = await fetchOrderDetails(order.id)
+                    setOrderToPay(detailsOrder)
+                  } catch {
+                    showToast('Could not load order details', 'error')
+                  }
+                }
+              }}
+              onCancelExecutionOrder={(order) => {
+                if (confirm(`Are you sure you want to cancel order ${order.id}?`)) {
+                  handleCancelOrder(order.id)
+                  setSelectedExecutionOrderId(null)
+                  clearCart()
+                }
+              }}
             />
           )}
         </div>

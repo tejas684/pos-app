@@ -66,8 +66,6 @@ export default function POSPage() {
     tax,
     taxRate,
     totalPayable,
-    charge,
-    setCharge,
     tips,
     setTips,
     addToCart,
@@ -121,7 +119,7 @@ export default function POSPage() {
   )
   const paymentBillSummary = getPaymentBillSummary(
     cartItems.length > 0,
-    cartItems.length > 0 ? { subtotal, discountAmount, tax, totalPayable, charge, tips } : null,
+    cartItems.length > 0 ? { subtotal, discountAmount, tax, totalPayable, tips } : null,
     orderToPay,
     activeOrders
   )
@@ -314,6 +312,7 @@ export default function POSPage() {
           setOrderToPay={setOrderToPay}
           setShowPaymentModal={setShowPaymentModal}
           orders={orders}
+          tables={tables}
           quickStats={quickStats}
           orderType={orderType}
           setOrderType={setOrderType}
@@ -331,7 +330,6 @@ export default function POSPage() {
           discountType={discountType}
           discountAmount={discountAmount}
           tax={tax}
-          charge={charge}
           tips={tips}
           taxRate={taxRate}
           orderBeingModified={orderBeingModified}
@@ -349,7 +347,6 @@ export default function POSPage() {
           decrementProductInCart={decrementProductInCart}
           setShowTableModal={setShowTableModal}
           handleApplyDiscount={handleApplyDiscount}
-          setCharge={setCharge}
           setTips={setTips}
           newlyAddedCustomers={pageState.newlyAddedCustomers}
           apiCustomers={apiCustomers}

@@ -75,9 +75,8 @@ export default function OrderDetailsModal({
 
     const tax = 0
 
-    // Charge and tips from order
-    const charge = order.charge || 0
     const tips = order.tips || 0
+    const charge = order.charge || 0
 
     return {
       totalProducts: order.items.length,
@@ -85,8 +84,8 @@ export default function OrderDetailsModal({
       totalDiscount: Math.round(itemDiscounts * 100) / 100, // Only item discounts
       orderDiscount: Math.round(orderDiscount * 100) / 100, // Order-level discount
       tax: Math.round(tax * 100) / 100,
-      charge: Math.round(charge * 100) / 100,
       tips: Math.round(tips * 100) / 100,
+      charge: Math.round(charge * 100) / 100,
       totalPayable: order.total,
     }
   }, [order])
@@ -235,10 +234,6 @@ export default function OrderDetailsModal({
               <span className="font-medium text-gray-900">₹{orderTotals.totalDiscount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Load:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.charge.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-gray-600">Discount:</span>
               <span className="font-medium text-gray-900">₹{orderTotals.orderDiscount.toFixed(2)}</span>
             </div>
@@ -246,6 +241,12 @@ export default function OrderDetailsModal({
               <span className="text-gray-600">Tips:</span>
               <span className="font-medium text-gray-900">₹{orderTotals.tips.toFixed(2)}</span>
             </div>
+            {orderTotals.charge > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-600">Charge:</span>
+                <span className="font-medium text-gray-900">₹{orderTotals.charge.toFixed(2)}</span>
+              </div>
+            )}
           </div>
 
           {/* Total Payable */}

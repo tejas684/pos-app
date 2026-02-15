@@ -57,6 +57,18 @@ export default function CustomerWaiterInfo({
     setCustomers(apiCustomers ?? [])
   }, [apiCustomers])
 
+  /** Reset search state when customer/waiter are cleared externally (e.g. Cancel button) */
+  useEffect(() => {
+    if (!customer) {
+      setCustomerSearchQuery('')
+      setShowCustomerDropdown(false)
+    }
+    if (!waiter) {
+      setWaiterSearchQuery('')
+      setShowWaiterDropdown(false)
+    }
+  }, [customer, waiter])
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node

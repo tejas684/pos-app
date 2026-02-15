@@ -18,7 +18,7 @@ import {
 } from '@/lib/api/pos'
 import { usePOSCart, type AddToCartPayload, type ProductForCustomization } from './usePOSCart'
 import { usePOSOrders } from './usePOSOrders'
-import { TAX_RATE } from './constants'
+import { TAX_RATE, CHARGE_PER_PERSON } from './constants'
 import { round2, computeSubtotal, computeDiscountAmount, computeTotalPayable } from './calculations'
 
 export function usePOS() {
@@ -54,7 +54,6 @@ export function usePOS() {
   const [showTableModal, setShowTableModal] = useState(false)
   const [discount, setDiscount] = useState(0)
   const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage')
-  const [charge, setCharge] = useState(0)
   const [tips, setTips] = useState(0)
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [showQuickStats, setShowQuickStats] = useState(false)
@@ -77,9 +76,10 @@ export function usePOS() {
     setSelectedTable('')
     setNumberOfPersons(0)
     setDiscount(0)
-    setCharge(0)
     setTips(0)
     setOrderBeingModified(null)
+    setCustomer('')
+    setWaiter('')
   }, [clearCartItems])
 
   const handleProductSelect = useCallback(
@@ -160,8 +160,8 @@ export function usePOS() {
   const discountAmount = useMemo(() => computeDiscountAmount(subtotal, discount), [subtotal, discount])
   const tax = 0
   const totalPayable = useMemo(
-    () => computeTotalPayable(subtotal, discountAmount, charge, tips),
-    [subtotal, discountAmount, charge, tips]
+    () => computeTotalPayable(subtotal, discountAmount, tips),
+    [subtotal, discountAmount, tips]
   )
 
   const quickStats = useMemo(() => {
@@ -181,9 +181,7 @@ export function usePOS() {
       if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return
       if (e.key === 'Escape') {
         if (cartItems.length > 0) {
-          setCartItems([])
-          setSelectedTable('')
-          setDiscount(0)
+          clearCart()
         }
       } else if (e.key === 's' || e.key === 'S') {
         setShowQuickStats((prev) => !prev)
@@ -191,7 +189,7 @@ export function usePOS() {
     }
     window.addEventListener('keydown', handleKeyPress)
     return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [showQuickStats, cartItems.length, isMounted, setCartItems])
+  }, [showQuickStats, cartItems.length, isMounted, clearCart])
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isMounted) return
@@ -264,7 +262,8 @@ export function usePOS() {
         )
         const areas = firstTable?.area ?? 'Hall'
         const persons = Math.max(0, numberOfPersons)
-        const pricePerPerson = persons > 0 ? (charge / persons).toFixed(2) : '0'
+        const chargeAmount = persons * CHARGE_PER_PERSON
+        const pricePerPerson = String(CHARGE_PER_PERSON)
         const cartForApi: PlaceOrderCartItem[] = cartItems.map((item) => {
           const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) ?? 0)
           return {
@@ -285,7 +284,7 @@ export function usePOS() {
           table_number: String(tableNumber),
           selected_persons: String(persons),
           price_per_person: pricePerPerson,
-          total_charge: Math.max(0, charge),
+          total_charge: chargeAmount,
           delivery_partner: null,
           total_price: totalPayable,
           cart: cartForApi,
@@ -293,10 +292,15 @@ export function usePOS() {
         try {
           const res = await placeOrderApi(body)
           const order = mapPlaceOrderResponseToOrder(res, customer, waiter)
+          const apiTotal = Number(order.total) || 0
           const orderWithTable: Order = {
             ...order,
             tableId: order.tableId || tableNumber || undefined,
             tableName: order.tableName || firstTable?.name || selectedTable || (tableNumber ? `Table ${tableNumber}` : undefined),
+            area: firstTable?.area,
+            items: (order.items?.length ?? 0) > 0 ? order.items : cartItems,
+            total: apiTotal > 0 ? apiTotal : totalPayable + chargeAmount,
+            charge: order.charge ?? (chargeAmount > 0 ? chargeAmount : undefined),
           }
           setOrders((prev) => [...prev, orderWithTable])
           setLastPlacedOrder(orderWithTable)
@@ -310,6 +314,8 @@ export function usePOS() {
         }
       }
 
+      const persons = Math.max(0, numberOfPersons)
+      const chargeAmount = persons * CHARGE_PER_PERSON
       const newOrder: Order = {
         id: `ORD-${Date.now()}`,
         tableId: tableId || undefined,
@@ -318,10 +324,10 @@ export function usePOS() {
         customer,
         items: [...cartItems],
         status: markCompleted ? 'completed' : 'pending',
-        total: totalPayable,
+        total: totalPayable + chargeAmount,
         discount: discountAmount,
         tax,
-        charge,
+        charge: chargeAmount > 0 ? chargeAmount : undefined,
         tips,
         createdAt: new Date(),
         waiter,
@@ -352,7 +358,6 @@ export function usePOS() {
       totalPayable,
       discountAmount,
       tax,
-      charge,
       numberOfPersons,
       waiter,
       clearCart,
@@ -392,6 +397,7 @@ export function usePOS() {
         setOrderToPay(null)
         setShowPaymentModal(false)
         setLastPaidOrderForInvoice(paidOrder)
+        clearCart()
         showToast(orderToPay.tableName ? `Payment received for ${orderToPay.id}! ${orderToPay.tableName} is now available.` : `Payment received for ${orderToPay.id}!`, 'success')
         return
       }
@@ -425,7 +431,6 @@ export function usePOS() {
           total: totalPayable,
           discount: discountAmount,
           tax,
-          charge,
           tips,
           waiter,
           status: 'completed',
@@ -477,7 +482,6 @@ export function usePOS() {
       totalPayable,
       discountAmount,
       tax,
-      charge,
       tips,
       orderType,
       selectedTable,
@@ -544,7 +548,8 @@ export function usePOS() {
         )
         const areas = firstTable?.area ?? 'Hall'
         const persons = Math.max(0, numberOfPersons)
-        const pricePerPerson = persons > 0 ? (charge / persons).toFixed(2) : '0'
+        const chargeAmount = persons * CHARGE_PER_PERSON
+        const pricePerPerson = String(CHARGE_PER_PERSON)
         const cartForApi: UpdateOrderCartItem[] = cartItems.map((item) => {
           const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) ?? 0)
           return {
@@ -565,7 +570,7 @@ export function usePOS() {
           table_number: String(tableNumber),
           selected_persons: String(persons),
           price_per_person: pricePerPerson,
-          total_charge: String(Math.max(0, charge)),
+          total_charge: String(chargeAmount),
           total_price: String(totalPayable),
           cart: cartForApi,
         }
@@ -577,6 +582,7 @@ export function usePOS() {
         }
       }
 
+      const chargeAmount = Math.max(0, numberOfPersons) * CHARGE_PER_PERSON
       const updatedOrder: Order = {
         ...orderBeingModified,
         tableId: tableId ?? orderBeingModified.tableId,
@@ -584,10 +590,10 @@ export function usePOS() {
         orderType,
         customer,
         items: [...cartItems],
-        total: totalPayable,
+        total: totalPayable + chargeAmount,
         discount: discountAmount,
         tax,
-        charge,
+        charge: chargeAmount > 0 ? chargeAmount : undefined,
         tips,
         waiter,
       }
@@ -607,7 +613,6 @@ export function usePOS() {
       totalPayable,
       discountAmount,
       tax,
-      charge,
       waiter,
       numberOfPersons,
       clearCart,
@@ -637,7 +642,6 @@ export function usePOS() {
       } else {
         setDiscount(0)
       }
-      setCharge(order.charge || 0)
       setTips(order.tips || 0)
       showToast(`Order ${order.id} loaded for modification`, 'info')
     },
@@ -700,8 +704,6 @@ export function usePOS() {
     orders,
     discount,
     discountType,
-    charge,
-    setCharge,
     tips,
     setTips,
     currentTime,

@@ -11,7 +11,6 @@ export interface CartBillSummaryInput {
   discountAmount: number
   tax: number
   totalPayable: number
-  charge: number
   tips: number
 }
 
@@ -19,7 +18,7 @@ export interface CartBillSummaryInput {
  * Build bill summary from cart totals (when paying from current cart).
  */
 export function getBillSummaryFromCart(input: CartBillSummaryInput): BillSummaryValues {
-  const { subtotal, discountAmount, tax, totalPayable, charge, tips } = input
+  const { subtotal, discountAmount, tax, totalPayable, tips } = input
   return {
     mrp: subtotal + discountAmount,
     sellingPrice: subtotal,
@@ -28,7 +27,6 @@ export function getBillSummaryFromCart(input: CartBillSummaryInput): BillSummary
     igst: 0,
     vat: 0,
     discount: discountAmount,
-    charge,
     tips,
     payableAmount: totalPayable,
   }
@@ -39,10 +37,9 @@ export function getBillSummaryFromCart(input: CartBillSummaryInput): BillSummary
  */
 export function getBillSummaryFromOrder(order: Order): BillSummaryValues {
   const ot = order.total
-  const oCharge = order.charge ?? 0
   const oTips = order.tips ?? 0
   const oDiscount = order.discount ?? 0
-  const base = ot - oCharge - oTips
+  const base = ot - oTips
   return {
     mrp: base + oDiscount,
     sellingPrice: base,
@@ -51,7 +48,6 @@ export function getBillSummaryFromOrder(order: Order): BillSummaryValues {
     igst: 0,
     vat: 0,
     discount: oDiscount,
-    charge: oCharge,
     tips: oTips,
     payableAmount: ot,
   }
@@ -65,7 +61,6 @@ const EMPTY_BILL_SUMMARY: BillSummaryValues = {
   igst: 0,
   vat: 0,
   discount: 0,
-  charge: 0,
   tips: 0,
   payableAmount: 0,
 }

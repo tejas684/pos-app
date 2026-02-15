@@ -1,3 +1,4 @@
 {
+  "/api/display-orders/route": "app/api/display-orders/route.js",
   "/page": "app/page.js"
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import type { OrderType, CartItem } from '@/types/pos'
+import { useState, useMemo } from 'react'
+import type { OrderType, CartItem, Order, Table } from '@/types/pos'
 import type { CustomerToEdit } from './AddCustomerModal'
 import CustomerWaiterInfo from './CustomerWaiterInfo'
 import OrderItemsTable from './OrderItemsTable'
@@ -21,6 +21,7 @@ interface OrderManagementPanelProps {
   orderType: OrderType
   setOrderType: (type: OrderType) => void
   selectedTable: string
+  tables?: Table[]
   setSelectedTable: (table: string) => void
   customer: string
   setCustomer: (customer: string) => void
@@ -34,7 +35,6 @@ interface OrderManagementPanelProps {
   discountType: 'percentage' | 'fixed'
   totalDiscount: number
   tax: number
-  charge: number
   tips: number
   taxRate?: number
   onUpdateQuantity: (id: string, quantity: number) => void
@@ -45,24 +45,32 @@ interface OrderManagementPanelProps {
   ) => void
   onClearCart: () => void
   onCancelOrder?: () => void
-  onShowPaymentModal: () => void
   onPlaceOrder: () => void
   onUpdateOrder?: () => void
   isModifyingOrder?: boolean
   onShowCustomerModal: (customerToEdit?: CustomerToEdit | null) => void
   onShowTableModal: () => void
   onUpdateDiscount: (value: number) => void
-  onUpdateCharge: (value: number) => void
   onUpdateTips: (value: number) => void
   onEditItemWithProductModal?: (item: CartItem, product: Product) => void
   waiterOptions?: string[]
   apiCustomers?: CustomerToEdit[]
+  /** Order loaded for modification – enables Details, KOT, Invoice, Cancel order in cart */
+  orderForActions?: Order | null
+  /** When null, the four action buttons (Details, KOT, Invoice, Cancel ord.) are disabled */
+  selectedExecutionOrderId?: string | null
+  orderDetailsLoading?: boolean
+  onOrderDetails?: (order: Order) => void
+  onReprintKOT?: (order: Order) => void
+  onInvoice?: (order: Order) => void
+  onCancelExecutionOrder?: (order: Order) => void
 }
 
 export default function OrderManagementPanel({
   orderType,
   setOrderType,
   selectedTable,
+  tables = [],
   setSelectedTable,
   customer,
   setCustomer,
@@ -76,7 +84,6 @@ export default function OrderManagementPanel({
   discountType,
   totalDiscount,
   tax,
-  charge,
   tips,
   taxRate = 10,
   onUpdateQuantity,
@@ -84,19 +91,36 @@ export default function OrderManagementPanel({
   onUpdateCartItemFull,
   onClearCart,
   onCancelOrder,
-  onShowPaymentModal,
   onPlaceOrder,
   onUpdateOrder,
   isModifyingOrder = false,
   onShowCustomerModal,
   onShowTableModal,
   onUpdateDiscount,
-  onUpdateCharge,
   onUpdateTips,
   onEditItemWithProductModal,
   waiterOptions,
   apiCustomers,
+  orderForActions = null,
+  selectedExecutionOrderId = null,
+  orderDetailsLoading = false,
+  onOrderDetails,
+  onReprintKOT,
+  onInvoice,
+  onCancelExecutionOrder,
 }: OrderManagementPanelProps) {
+  /** Display one table with area for the cart button (e.g. "Garden - Table 1") */
+  const tableDisplayForCart = useMemo(() => {
+    if (!selectedTable.trim()) return ''
+    const firstTableName = selectedTable.split(',')[0].trim()
+    if (!firstTableName) return selectedTable
+    const table = tables.find(
+      (t) => t.name === firstTableName || t.name.toLowerCase() === firstTableName.toLowerCase()
+    )
+    if (table?.area?.trim()) return `${table.area} – ${table.name}`
+    return table?.name ?? firstTableName
+  }, [selectedTable, tables])
+
   const handleEditItem = (item: CartItem) => {
     if (onEditItemWithProductModal) {
       // Reconstruct product from cart item
@@ -176,13 +200,13 @@ export default function OrderManagementPanel({
                 ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600'
                 : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
             }`}
-            title={selectedTable ? `${selectedTable} – click to change` : 'Select table for this order'}
+            title={selectedTable ? `${tableDisplayForCart || selectedTable} – click to change` : 'Select table for this order'}
           >
             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             {selectedTable ? (
-              <span className="font-semibold">{selectedTable}</span>
+              <span className="font-semibold">{tableDisplayForCart || selectedTable}</span>
             ) : (
               <span>Select Table</span>
             )}
@@ -222,19 +246,23 @@ export default function OrderManagementPanel({
         discountType={discountType}
         totalDiscount={totalDiscount}
         tax={tax}
-        charge={charge}
         tips={tips}
         cartItems={cartItems}
         taxRate={taxRate}
         isModifyingOrder={isModifyingOrder}
         selectedTable={selectedTable || undefined}
         onClearCart={onClearCart}
-        onShowPaymentModal={onShowPaymentModal}
         onPlaceOrder={onPlaceOrder}
         onUpdateOrder={onUpdateOrder}
         onUpdateDiscount={onUpdateDiscount}
-        onUpdateCharge={onUpdateCharge}
         onUpdateTips={onUpdateTips}
+        orderForActions={orderForActions}
+        selectedExecutionOrderId={selectedExecutionOrderId}
+        orderDetailsLoading={orderDetailsLoading}
+        onOrderDetails={onOrderDetails}
+        onReprintKOT={onReprintKOT}
+        onInvoice={onInvoice}
+        onCancelExecutionOrder={onCancelExecutionOrder}
       />
       </div>
     </div>

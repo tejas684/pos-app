@@ -32,7 +32,6 @@ export interface BillSummaryValues {
   igst: number
   vat: number
   discount: number
-  charge: number
   tips: number
   payableAmount: number
 }
@@ -113,19 +112,52 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
 
   const isOrderPayment = order != null
 
+  // When order.total / payableAmount are 0, compute total from items so Submit/Print Invoice can enable
+  const orderTotalFromItems = useMemo(() => {
+    if (!order?.items?.length) return 0
+    let sum = 0
+    for (const item of order.items) {
+      const { totalAfterDiscount } = getItemLineTotals(item)
+      sum += totalAfterDiscount
+    }
+    const orderDiscount = order.discount ?? 0
+    const tips = order.tips ?? 0
+    return Math.max(0, sum - orderDiscount + tips)
+  }, [order?.items, order?.discount, order?.tips])
+
   useEffect(() => {
     if (!isOrderPayment) {
       setAmountReceived(safePayable.toFixed(2))
     }
   }, [safePayable, isOrderPayment])
 
-  // Order payment: balance = total - discount - online - cash
-  const totalAmount = isOrderPayment ? (order?.total ?? safePayable) : safePayable
+  // Pre-fill Cash with order total when modal opens so Submit / Print Invoice work without typing
+  const prefillCashForOrderIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (isOrderPayment && order?.id) {
+      const total = order?.total ?? (safePayable || orderTotalFromItems)
+      if (total > 0 && prefillCashForOrderIdRef.current !== order.id) {
+        prefillCashForOrderIdRef.current = order.id
+        setDiscountStr('0')
+        setOnlineStr('0')
+        setCashStr(total.toFixed(2))
+      }
+    } else {
+      prefillCashForOrderIdRef.current = null
+    }
+  }, [isOrderPayment, order?.id, order?.total, safePayable, orderTotalFromItems])
+
+  // Order payment: balance = total - discount - online - cash (use epsilon for float safety)
+  const totalAmount = isOrderPayment
+    ? (order?.total ?? (safePayable || orderTotalFromItems || 0))
+    : safePayable
   const discountNum = isOrderPayment ? Math.max(0, parseFloat(discountStr) || 0) : 0
   const onlineNum = isOrderPayment ? Math.max(0, parseFloat(onlineStr) || 0) : 0
   const cashNum = isOrderPayment ? Math.max(0, parseFloat(cashStr) || 0) : 0
   const balance = Math.max(0, totalAmount - discountNum - onlineNum - cashNum)
-  const canSubmitOrderPayment = isOrderPayment && balance === 0 && totalAmount > 0
+  const BALANCE_EPSILON = 0.01
+  const isFullyPaid = balance < BALANCE_EPSILON
+  const canSubmitOrderPayment = isOrderPayment && isFullyPaid && totalAmount > 0
 
   const amountNum = parseFloat(amountReceived) || 0
   const changeAmount = Math.max(0, amountNum - safePayable)
@@ -215,8 +247,8 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
 
   if (isOrderPayment && order) {
     const orderNumber = order.orderNumber ?? order.id
-    const charge = order.charge ?? 0
     const tips = order.tips ?? 0
+    const charge = order.charge ?? 0
     const orderDiscount = order.discount ?? 0
     const items = order.items ?? []
     const itemsLoading = items.length === 0
@@ -433,7 +465,6 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
   }
 
   // Cart: show same as Invoice modal (view bill + Close + Print Bill only, no payment form)
-  const cartCharge = billSummary.charge ?? 0
   const cartTips = billSummary.tips ?? 0
   const cartOrderDiscount = billSummary.discount ?? 0
   const hasCartItems = cartItems.length > 0
@@ -591,12 +622,6 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                 <div className="flex justify-between text-red-600">
                   <span>Order discount</span>
                   <span>−{CURRENCY_SYMBOL}{cartOrderDiscount.toFixed(2)}</span>
-                </div>
-              )}
-              {cartCharge > 0 && (
-                <div className="flex justify-between">
-                  <span>Charge</span>
-                  <span>{CURRENCY_SYMBOL}{cartCharge.toFixed(2)}</span>
                 </div>
               )}
               {cartTips > 0 && (

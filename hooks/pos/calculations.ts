@@ -26,11 +26,9 @@ export function computeDiscountAmount(subtotal: number, discountPercent: number)
 export function computeTotalPayable(
   subtotal: number,
   discountAmount: number,
-  charge: number,
   tips: number
 ): number {
-  const safeCharge = Math.max(0, charge)
   const safeTips = Math.max(0, tips)
   const base = Math.max(0, subtotal - discountAmount)
-  return round2(base + safeCharge + safeTips)
+  return round2(base + safeTips)
 }

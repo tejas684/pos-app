@@ -220,11 +220,13 @@ export default function KitchenOrderTicket({
   // Only show values from place order API response (order_no, order_id) – no client-side generation
   const displayOrderNumber = (order.orderNumber ?? order.id) || '—'
   const orderIdDisplay = order.id || '—'
-  const tableDisplay = order.tableName ?? (order.tableId ? `Table ${order.tableId}` : null) ?? 'None'
+  const tableBase = order.tableName ?? (order.tableId ? `Table ${order.tableId}` : null) ?? 'None'
+  const tableDisplay = order.area?.trim() ? `${order.area} – ${tableBase}` : tableBase
+  const orderItems = order.items ?? []
 
-  // Status labels – same as ExecutionOrdersSidebar
+  // Status labels – KOT uses "Placed" for newly placed orders instead of "Pending"
   const STATUS_LABELS: Record<Order['status'], string> = {
-    pending: 'Pending',
+    pending: 'Placed',
     preparing: 'Preparing',
     ready: 'Ready',
     served: 'Served',
@@ -259,7 +261,7 @@ export default function KitchenOrderTicket({
           <div className="sticky top-0 bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-xl flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Kitchen Order Ticket</h2>
-              <p className="text-sm text-green-50 mt-1">Order #{displayOrderNumber}</p>
+              <p className="text-sm text-green-50 mt-1">Order No {displayOrderNumber}</p>
             </div>
             <button
               onClick={handleClose}
@@ -315,11 +317,11 @@ export default function KitchenOrderTicket({
             {/* Order Details – same order and labels as Execution orders sidebar; real order number & id from API */}
             <div className="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Client:</span>
+                <span className="font-semibold text-gray-700">Customer:</span>
                 <span className="text-gray-900 font-medium">{order.customer}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Order #:</span>
+                <span className="font-semibold text-gray-700">Order No:</span>
                 <span className="font-mono font-bold text-gray-900">{displayOrderNumber}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -347,14 +349,14 @@ export default function KitchenOrderTicket({
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-gray-700">Status:</span>
                 <span className={`shrink-0 px-2 py-1 rounded text-xs font-semibold uppercase ${
-                  order.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                  (order.status ?? 'pending') === 'pending' ? 'bg-amber-100 text-amber-800' :
                   order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
                   order.status === 'ready' ? 'bg-emerald-100 text-emerald-800' :
                   order.status === 'served' ? 'bg-violet-100 text-violet-800' :
                   order.status === 'completed' ? 'bg-neutral-100 text-neutral-600' :
                   'bg-red-100 text-red-800'
                 }`}>
-                  {STATUS_LABELS[order.status]}
+                  {order.status != null && order.status in STATUS_LABELS ? STATUS_LABELS[order.status] : 'Placed'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -370,7 +372,10 @@ export default function KitchenOrderTicket({
             <div className="mb-6">
               <h3 className="font-bold text-lg mb-4 text-gray-800">Order Items:</h3>
               <div className="space-y-4">
-                {order.items.map((item, index) => {
+                {orderItems.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No items in this order.</p>
+                ) : (
+                orderItems.map((item, index) => {
                   const itemPrice = item.price + (item.modifiers?.reduce((sum, mod) => sum + mod.price, 0) || 0)
                   return (
                     <div key={item.lineItemId || `${item.id}-${index}`} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
@@ -407,7 +412,8 @@ export default function KitchenOrderTicket({
                       </div>
                     </div>
                   )
-                })}
+                })
+                )}
               </div>
             </div>
 

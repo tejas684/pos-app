@@ -22,12 +22,10 @@ interface CartItemOptionsModalProps {
   discountType: 'percentage' | 'fixed' // Kept for backward compatibility but always 'percentage'
   totalDiscount: number
   tax: number
-  charge: number
   tips: number
   cartItems?: CartItem[]
   taxRate?: number
   onUpdateDiscount: (value: number) => void
-  onUpdateCharge: (value: number) => void
   onUpdateTips: (value: number) => void
 }
 
@@ -40,22 +38,18 @@ function CartItemOptionsModal({
   discountType,
   totalDiscount,
   tax,
-  charge,
   tips,
   cartItems = [],
   taxRate = 10,
   onUpdateDiscount,
-  onUpdateCharge,
   onUpdateTips,
 }: CartItemOptionsModalProps) {
   const { showToast } = useToast()
   const [showDiscountInput, setShowDiscountInput] = useState(false)
-  const [showChargeInput, setShowChargeInput] = useState(false)
   const [showTipsInput, setShowTipsInput] = useState(false)
   useEffect(() => {
     if (!isOpen) {
       setShowDiscountInput(false)
-      setShowChargeInput(false)
       setShowTipsInput(false)
     }
   }, [isOpen])
@@ -85,17 +79,6 @@ function CartItemOptionsModal({
     onUpdateDiscount(numValue)
     setShowDiscountInput(false)
     showToast('Discount updated', 'success')
-  }
-
-  const handleChargeSubmit = (value: string) => {
-    const numValue = parseFloat(value) || 0
-    if (numValue < 0) {
-      showToast('Charge cannot be negative', 'error')
-      return
-    }
-    onUpdateCharge(numValue)
-    setShowChargeInput(false)
-    showToast('Charge updated', 'success')
   }
 
   const handleTipsSubmit = (value: string) => {
@@ -179,23 +162,6 @@ function CartItemOptionsModal({
               <span className="text-sm font-semibold text-gray-900">₹{totalDiscount.toFixed(2)}</span>
             </div>
 
-            {/* Charge */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Charge:</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">₹{charge.toFixed(2)}</span>
-                <button
-                  onClick={() => setShowChargeInput(true)}
-                  className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                  aria-label="Edit charge"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
             {/* Tips */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Tips:</span>
@@ -236,18 +202,6 @@ function CartItemOptionsModal({
         placeholder="0-100"
         type="number"
         defaultValue={discount.toString()}
-      />
-
-      {/* Charge Input Modal */}
-      <InputModal
-        isOpen={showChargeInput}
-        onClose={() => setShowChargeInput(false)}
-        onSubmit={handleChargeSubmit}
-        title="Edit Charge"
-        label="Charge Amount (₹)"
-        placeholder="0.00"
-        type="number"
-        defaultValue={charge.toString()}
       />
 
       {/* Tips Input Modal */}
