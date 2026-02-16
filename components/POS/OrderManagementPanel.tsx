@@ -195,9 +195,9 @@ export default function OrderManagementPanel({
         {orderType === 'dine-in' && (
           <button
             onClick={onShowTableModal}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 relative ${
               selectedTable
-                ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600'
+                ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600 hover:shadow-lg animate-live-glow'
                 : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
             }`}
             title={selectedTable ? `${tableDisplayForCart || selectedTable} – click to change` : 'Select table for this order'}

@@ -6,6 +6,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useToast } from '@/components/ui/Toast'
 import type { OrderType, Order, OrderPayment } from '@/types/pos'
 import type { CartItem } from '@/types/pos'
+import { ApiError } from '@/lib/api'
 import {
   placeOrderApi,
   mapPlaceOrderResponseToOrder,
@@ -45,7 +46,7 @@ export function usePOS() {
 
   const [orderType, setOrderType] = useState<OrderType>('dine-in')
   const [selectedTable, setSelectedTable] = useState<string>('')
-  const [customer, setCustomer] = useState('')
+  const [customer, setCustomer] = useState('Walk-in Customer')
   const [waiter, setWaiter] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showDiscountModal, setShowDiscountModal] = useState(false)
@@ -78,7 +79,7 @@ export function usePOS() {
     setDiscount(0)
     setTips(0)
     setOrderBeingModified(null)
-    setCustomer('')
+    setCustomer('Walk-in Customer')
     setWaiter('')
   }, [clearCartItems])
 
@@ -251,6 +252,30 @@ export function usePOS() {
       const customerId = options?.customerId
 
       if (waiterId != null && customerId != null && !payment) {
+        const wId = Number(waiterId)
+        const cId = Number(customerId)
+        if (!Number.isFinite(wId) || wId < 1 || !Number.isFinite(cId) || cId < 1) {
+          showToast('Invalid customer or waiter. Please select a customer and waiter from the list.', 'error')
+          return undefined
+        }
+        const cartForApi: PlaceOrderCartItem[] = []
+        for (const item of cartItems) {
+          const pid = Number(item.id)
+          if (!Number.isFinite(pid) || pid < 1) {
+            showToast(`"${item.name}" has invalid product ID. Please remove and add again from the menu.`, 'error')
+            return undefined
+          }
+          const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) ?? 0)
+          cartForApi.push({
+            product_id: Math.floor(pid),
+            product_name: item.name,
+            size_id: null,
+            size_name: item.selectedSize ?? null,
+            quantity: Math.max(1, Math.floor(Number(item.quantity)) || 1),
+            unit_price: round2(unitPrice),
+            total_price: round2(unitPrice * item.quantity),
+          })
+        }
         const tableNumber =
           (selectedTable && selectedTable.match(/Table\s*(\d+)/i)?.[1]) ||
           (tableId ?? selectedTable?.replace(/\D/g, '')) ||
@@ -264,24 +289,14 @@ export function usePOS() {
         const persons = Math.max(0, numberOfPersons)
         const chargeAmount = persons * CHARGE_PER_PERSON
         const pricePerPerson = String(CHARGE_PER_PERSON)
-        const cartForApi: PlaceOrderCartItem[] = cartItems.map((item) => {
-          const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) ?? 0)
-          return {
-            product_id: Number(item.id) || 0,
-            product_name: item.name,
-            size_id: null,
-            size_name: item.selectedSize ?? null,
-            quantity: item.quantity,
-            unit_price: round2(unitPrice),
-            total_price: round2(unitPrice * item.quantity),
-          }
-        })
+        const tableNum = orderType === 'dine-in' ? String(tableNumber) : ''
         const body: PlaceOrderRequest = {
-          customer_id: customerId,
-          waiter_id: waiterId,
+          customer_id: Math.floor(cId),
+          waiter_id: Math.floor(wId),
           order_type: orderType,
           areas,
-          table_number: String(tableNumber),
+          table_number: tableNum,
+          ...(firstTable?.id && { table_id: String(firstTable.id) }),
           selected_persons: String(persons),
           price_per_person: pricePerPerson,
           total_charge: chargeAmount,
@@ -297,10 +312,14 @@ export function usePOS() {
             ...order,
             tableId: order.tableId || tableNumber || undefined,
             tableName: order.tableName || firstTable?.name || selectedTable || (tableNumber ? `Table ${tableNumber}` : undefined),
-            area: firstTable?.area,
+            area: firstTable?.area ?? order.area,
             items: (order.items?.length ?? 0) > 0 ? order.items : cartItems,
             total: apiTotal > 0 ? apiTotal : totalPayable + chargeAmount,
             charge: order.charge ?? (chargeAmount > 0 ? chargeAmount : undefined),
+            selectedPersons: order.selectedPersons ?? (persons > 0 ? persons : undefined),
+            pricePerPerson: order.pricePerPerson ?? (persons > 0 ? CHARGE_PER_PERSON : undefined),
+            customerId: Math.floor(cId),
+            waiterId: Math.floor(wId),
           }
           setOrders((prev) => [...prev, orderWithTable])
           setLastPlacedOrder(orderWithTable)
@@ -309,7 +328,13 @@ export function usePOS() {
           showToast(`Order ${orderWithTable.id} placed successfully!${orderWithTable.tableName ? ` ${orderWithTable.tableName} is now booked.` : ''}`, 'success')
           return orderWithTable
         } catch (e) {
-          showToast(e instanceof Error ? e.message : 'Failed to place order', 'error')
+          const msg =
+            e instanceof ApiError && e.data && typeof e.data === 'object' && 'message' in (e.data as object)
+              ? String((e.data as { message: unknown }).message)
+              : e instanceof Error
+                ? e.message
+                : 'Failed to place order'
+          showToast(msg, 'error')
           return undefined
         }
       }
@@ -331,6 +356,7 @@ export function usePOS() {
         tips,
         createdAt: new Date(),
         waiter,
+        ...(persons > 0 && { selectedPersons: persons, pricePerPerson: CHARGE_PER_PERSON }),
         ...(payment && { payment }),
       }
       setOrders((prev) => [...prev, newOrder])
@@ -372,6 +398,7 @@ export function usePOS() {
     amount: number
     change?: number
     cardDetails?: import('@/types/pos').OrderPaymentCardDetails
+    showInvoiceAfter?: boolean
   }
   const handlePayment = useCallback(
     (paymentData: PaymentPayload) => {
@@ -394,9 +421,8 @@ export function usePOS() {
         }
         const paidOrder = { ...orderToPay, status: 'completed' as const, payment }
         setOrders((prev) => prev.map((o) => (o.id === orderToPay.id ? paidOrder : o)))
-        setOrderToPay(null)
-        setShowPaymentModal(false)
-        setLastPaidOrderForInvoice(paidOrder)
+        // Don't close modal - let user close via Close button after viewing success / printing invoice
+        if (paymentData.showInvoiceAfter) setLastPaidOrderForInvoice(paidOrder)
         clearCart()
         showToast(orderToPay.tableName ? `Payment received for ${orderToPay.id}! ${orderToPay.tableName} is now available.` : `Payment received for ${orderToPay.id}!`, 'success')
         return
@@ -534,8 +560,6 @@ export function usePOS() {
           }
         }
       }
-      const orderIdNum = Number(orderBeingModified.id)
-
       if (options != null) {
         const tableNumber =
           (selectedTable && selectedTable.match(/Table\s*(\d+)/i)?.[1]) ||
@@ -553,12 +577,12 @@ export function usePOS() {
         const cartForApi: UpdateOrderCartItem[] = cartItems.map((item) => {
           const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) ?? 0)
           return {
-            order_id: orderIdNum,
             product_id: Number(item.id) || 0,
             product_name: item.name,
             size_id: null,
             size_name: item.selectedSize ?? null,
             quantity: item.quantity,
+            unit_price: round2(unitPrice),
             total_price: round2(unitPrice * item.quantity),
           }
         })
@@ -570,8 +594,9 @@ export function usePOS() {
           table_number: String(tableNumber),
           selected_persons: String(persons),
           price_per_person: pricePerPerson,
-          total_charge: String(chargeAmount),
-          total_price: String(totalPayable),
+          total_charge: chargeAmount,
+          delivery_partner: null,
+          total_price: totalPayable,
           cart: cartForApi,
         }
         try {
@@ -583,6 +608,7 @@ export function usePOS() {
       }
 
       const chargeAmount = Math.max(0, numberOfPersons) * CHARGE_PER_PERSON
+      const persons = Math.max(0, numberOfPersons)
       const updatedOrder: Order = {
         ...orderBeingModified,
         tableId: tableId ?? orderBeingModified.tableId,
@@ -596,6 +622,8 @@ export function usePOS() {
         charge: chargeAmount > 0 ? chargeAmount : undefined,
         tips,
         waiter,
+        selectedPersons: persons > 0 ? persons : orderBeingModified.selectedPersons,
+        pricePerPerson: persons > 0 ? CHARGE_PER_PERSON : orderBeingModified.pricePerPerson,
       }
       setOrders((prev) => prev.map((order) => (order.id === orderBeingModified.id ? updatedOrder : order)))
       setLastPlacedOrder(updatedOrder)
@@ -632,6 +660,7 @@ export function usePOS() {
         }))
       )
       setSelectedTable(order.tableName || '')
+      setNumberOfPersons(Math.max(0, order.selectedPersons ?? 0))
       setOrderType(order.orderType)
       setCustomer(order.customer)
       setWaiter(order.waiter || '')
@@ -643,9 +672,8 @@ export function usePOS() {
         setDiscount(0)
       }
       setTips(order.tips || 0)
-      showToast(`Order ${order.id} loaded for modification`, 'info')
     },
-    [showToast, setCartItems, genLineItemId]
+    [setCartItems, genLineItemId]
   )
 
   const handleApplyDiscount = useCallback(

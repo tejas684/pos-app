@@ -9,6 +9,7 @@
 
 'use client'
 
+import { useCallback } from 'react'
 import AuthGuard from '@/components/AuthGuard'
 import { usePOS } from '@/hooks/usePOS'
 import { usePOSData } from '@/contexts/POSDataContext'
@@ -113,6 +114,12 @@ export default function POSPage() {
   })
 
   const activeOrders = orders.filter((o) => o.status !== 'completed' && o.status !== 'cancelled')
+
+  /** Clear cart and reset order action buttons (Details, KOT, Invoice, Cancel ord.) so they have no data */
+  const handleClearCart = useCallback(() => {
+    clearCart()
+    pageState.setSelectedExecutionOrderId(null)
+  }, [clearCart, pageState.setSelectedExecutionOrderId])
   const paymentTotal = Math.max(
     0,
     Number(cartItems.length > 0 ? totalPayable : orderToPay?.total ?? activeOrders[0]?.total ?? 0)
@@ -175,6 +182,18 @@ export default function POSPage() {
 
   const onUpdateOrder = () => {
     if (!orderBeingModified) return
+    // For update: prefer order's stored IDs so we never show "Please select customer" when the order already has customer/waiter
+    const hasStoredIds =
+      orderBeingModified.customerId != null &&
+      orderBeingModified.waiterId != null
+    if (hasStoredIds) {
+      void handleUpdateOrder({
+        customerId: orderBeingModified.customerId!,
+        waiterId: orderBeingModified.waiterId!,
+      })
+      return
+    }
+    // Only validate when order has no stored IDs (e.g. legacy data)
     const validated = validateWaiterAndCustomer(
       posData,
       pageState.newlyAddedCustomers,
@@ -336,7 +355,7 @@ export default function POSPage() {
           updateCartItem={updateCartItem}
           removeFromCart={removeFromCart}
           updateCartItemFull={updateCartItemFull}
-          clearCart={clearCart}
+          clearCart={handleClearCart}
           handleCancelOrder={handleCancelOrder}
           onPlaceOrder={onPlaceOrder}
           onUpdateOrder={onUpdateOrder}
@@ -439,11 +458,6 @@ export default function POSPage() {
           onCloseOrderDetails={() => {
             pageState.setShowOrderDetailsModal(false)
             pageState.setSelectedOrderForDetails(null)
-          }}
-          onCreateInvoiceFromDetails={() => {
-            if (pageState.selectedOrderForDetails) {
-              showToast(`Generating invoice for order ${pageState.selectedOrderForDetails.id}`, 'info')
-            }
           }}
           lastPaidOrderForInvoice={lastPaidOrderForInvoice}
           onCloseInvoice={() => setLastPaidOrderForInvoice(null)}

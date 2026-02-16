@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { printInvoice } from '@/lib/invoicePrint'
 import type { Order, CartItem } from '@/types/pos'
 
 const CURRENCY = '₹'
@@ -25,15 +26,6 @@ function formatDateTime(date: Date) {
   return `${y}-${m}-${day} ${h}:${min}:${s}`
 }
 
-function getOrderTypeLabel(orderType: string) {
-  switch (orderType) {
-    case 'dine-in': return 'Dine in'
-    case 'take-away': return 'Takeaway'
-    case 'delivery': return 'Delivery'
-    default: return orderType
-  }
-}
-
 /** Per-line: unit price (base + modifiers), line total, item discount, total after discount */
 function getItemLineTotals(item: CartItem) {
   const unitPrice = item.price + (item.modifiers?.reduce((s, m) => s + m.price, 0) || 0)
@@ -51,17 +43,17 @@ function getItemLineTotals(item: CartItem) {
 }
 
 export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalProps) {
-  const printRef = useRef<HTMLDivElement>(null)
   const [isPrinting, setIsPrinting] = useState(false)
+  const [discount, setDiscount] = useState<string>(String(order.discount ?? 0))
+  const [online, setOnline] = useState<string>(String(order.payment?.method === 'card' ? order.payment?.amount ?? 0 : 0))
+  const [cash, setCash] = useState<string>(String(order.payment?.method === 'cash' ? order.payment?.amount ?? 0 : 0))
+  const [note, setNote] = useState<string>('')
 
   const orderNumber = formatOrderNumber(order)
-  const tips = order.tips ?? 0
-  const charge = order.charge ?? 0
-  const orderDiscount = order.discount ?? 0
-  const paidAmount = order.payment?.amount ?? 0
-  const changeAmount = order.payment?.change ?? 0
+  const selectedPersons = order.selectedPersons ?? 0
+  const pricePerPerson = order.pricePerPerson ?? 0
+  const charge = order.charge ?? (selectedPersons > 0 && pricePerPerson > 0 ? selectedPersons * pricePerPerson : 0)
 
-  // Items total = sum of (item price × qty) after item-level discounts (not pre-discount line total)
   const { itemsTotal } = useMemo(() => {
     let total = 0
     for (const item of order.items ?? []) {
@@ -71,56 +63,31 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
     return { itemsTotal: total }
   }, [order.items])
 
-  const handlePrint = () => {
-    if (!printRef.current) return
+  const totalAmt = order.total
+  const discountNum = parseFloat(discount) || 0
+  const onlineNum = parseFloat(online) || 0
+  const cashNum = parseFloat(cash) || 0
+  const balance = Math.max(0, totalAmt - discountNum - onlineNum - cashNum)
+
+  const handlePrint = async () => {
     setIsPrinting(true)
-    const printContent = printRef.current.innerHTML
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      window.print()
-      setIsPrinting(false)
-      return
-    }
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Invoice - ${orderNumber}</title>
-          <style>
-            body { font-family: Arial, sans-serif; font-size: 14px; padding: 20px; color: #111; }
-            .invoice-header { text-align: center; margin-bottom: 16px; }
-            .invoice-title { font-size: 24px; font-weight: bold; margin-bottom: 4px; }
-            .order-id { font-size: 14px; color: #444; }
-            table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-            th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e5e5e5; }
-            th { font-weight: 600; }
-            .text-right { text-align: right; }
-            .dashed { border-top: 1px dashed #999; margin: 12px 0; }
-            .totals { margin-top: 16px; }
-            .grand-total { font-size: 18px; font-weight: bold; margin-top: 8px; }
-            .addons { font-size: 12px; color: #555; margin-top: 2px; }
-          </style>
-        </head>
-        <body>${printContent}</body>
-      </html>
-    `)
-    printWindow.document.close()
-    printWindow.focus()
-    setTimeout(() => {
-      printWindow.print()
-      printWindow.close()
-      setIsPrinting(false)
-    }, 250)
+    await printInvoice(order, CURRENCY)
+    setIsPrinting(false)
+  }
+
+  const handleSubmit = () => {
+    // Keep modal open; user closes via Close button or X
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" aria-modal="true" role="dialog">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-bold text-gray-900">Invoice / Bill</h2>
+    <div className="fixed inset-0 bg-neutral-900/50 z-[60] flex items-center justify-center p-4" aria-modal="true" role="dialog">
+      <div className="bg-white rounded-2xl shadow-strong max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col border border-neutral-200">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-200 bg-neutral-50">
+          <h2 className="text-lg font-bold text-neutral-800">Invoice / Bill</h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-neutral-500 hover:bg-neutral-200 rounded-lg transition-colors"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,153 +96,160 @@ export default function InvoiceBillModal({ order, onClose }: InvoiceBillModalPro
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <div ref={printRef} className="invoice-print-content bg-white text-gray-900">
-            <div className="text-right text-sm text-gray-500 mb-2">
-              {new Date().toLocaleString()}
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {/* Order Number */}
+          <div>
+            <label className="block text-sm font-bold text-neutral-800 mb-1.5">Order Number</label>
+            <div className="px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-800">
+              {orderNumber}
             </div>
-            <div className="text-center mb-4">
-              <h1 className="text-2xl font-bold">INVOICE</h1>
-              <p className="text-sm text-gray-600 mt-1">Order #: {orderNumber}</p>
-            </div>
-            <div className="space-y-1 text-sm mb-4">
-              <p><span className="text-gray-600">Date:</span> {formatDateTime(order.createdAt)}</p>
-              <p><span className="text-gray-600">Customer:</span> {order.customer}</p>
-              {order.tableName && (
-                <p><span className="text-gray-600">Table:</span> {order.tableName}</p>
-              )}
-              {order.waiter && (
-                <p><span className="text-gray-600">Waiter:</span> {order.waiter}</p>
-              )}
-              <p><span className="text-gray-600">Order type:</span> {getOrderTypeLabel(order.orderType ?? 'dine-in')}</p>
-            </div>
+          </div>
 
-            <div className="border-t border-b border-dashed border-gray-300 my-4" />
-
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2">Item</th>
-                  <th className="text-center py-2 w-12">Qty</th>
-                  <th className="text-right py-2">Price</th>
-                  <th className="text-right py-2">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(order.items ?? []).map((item, index) => {
-                  const { unitPrice, itemDiscount, totalAfterDiscount, isPercentage, rawDiscount } = getItemLineTotals(item)
-                  return (
-                    <tr key={item.lineItemId || index} className="border-b border-gray-100">
-                      <td className="py-2">
-                        <div className="font-medium">{index + 1}. {item.name}</div>
-                        {item.selectedSize && (
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            Size: {item.selectedSize} — {CURRENCY}{item.price.toFixed(2)}/unit
-                          </div>
-                        )}
-                        {item.modifiers && item.modifiers.length > 0 && (
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            Add-ons: {item.modifiers.map((m, i) => (
-                              <span key={i}>{m.name} (+{CURRENCY}{m.price.toFixed(2)}){i < item.modifiers!.length - 1 ? ', ' : ''}</span>
-                            ))}
-                          </div>
-                        )}
-                        {itemDiscount > 0 && (
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            Item discount: {isPercentage ? `${rawDiscount}%` : `${CURRENCY}${rawDiscount.toFixed(2)} off`} — −{CURRENCY}{itemDiscount.toFixed(2)}
-                          </div>
-                        )}
-                        {item.notes && item.notes.trim() && (
-                          <div className="text-xs text-gray-600 mt-0.5 italic">
-                            Note: {item.notes.trim()}
-                          </div>
-                        )}
-                      </td>
-                      <td className="text-center py-2 align-top">{item.quantity}</td>
-                      <td className="text-right py-2 align-top">{CURRENCY}{unitPrice.toFixed(2)}</td>
-                      <td className="text-right py-2 align-top">{CURRENCY}{totalAfterDiscount.toFixed(2)}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-
-            <div className="border-t border-b border-dashed border-gray-300 my-4" />
-
-            <div className="text-sm space-y-1">
-              <div className="flex justify-between">
-                <span>Items total</span>
-                <span>{CURRENCY}{itemsTotal.toFixed(2)}</span>
+          {/* Order Items */}
+          <div>
+            <h3 className="text-sm font-bold text-neutral-800 mb-2">Order Items</h3>
+            <div className="invoice-print-content">
+              <table className="w-full text-sm border border-neutral-300 rounded-lg overflow-hidden">
+                <thead>
+                  <tr className="bg-neutral-100">
+                    <th className="py-2 px-3 text-left font-bold text-neutral-800 border-b border-r border-neutral-300">Product</th>
+                    <th className="py-2 px-3 text-center font-bold text-neutral-800 border-b border-r border-neutral-300 w-14">Qty</th>
+                    <th className="py-2 px-3 text-right font-bold text-neutral-800 border-b border-r border-neutral-300">Price</th>
+                    <th className="py-2 px-3 text-right font-bold text-neutral-800 border-b border-neutral-300">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(order.items ?? []).map((item, index) => {
+                    const { unitPrice, totalAfterDiscount } = getItemLineTotals(item)
+                    return (
+                      <tr key={item.lineItemId || index} className="border-b border-neutral-200">
+                        <td className="py-2 px-3 text-neutral-800 border-r border-neutral-200">{item.name}</td>
+                        <td className="py-2 px-3 text-center text-neutral-800 border-r border-neutral-200">{item.quantity}</td>
+                        <td className="py-2 px-3 text-right text-neutral-800 border-r border-neutral-200">{CURRENCY}{unitPrice.toFixed(2)}</td>
+                        <td className="py-2 px-3 text-right text-neutral-800">{CURRENCY}{totalAfterDiscount.toFixed(2)}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+              <div className="mt-2 space-y-1 text-sm">
+                <div className="flex justify-end gap-4">
+                  <span className="font-bold text-neutral-800">
+                    {selectedPersons > 0 && pricePerPerson > 0
+                      ? `Charge (${selectedPersons} person(s) @ ${CURRENCY}${pricePerPerson.toFixed(2)})`
+                      : 'Charge'}
+                  </span>
+                  <span className="text-neutral-800 min-w-[4rem] text-right">{CURRENCY}{charge.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-end gap-4 font-bold">
+                  <span className="text-neutral-800">Grand Total</span>
+                  <span className="text-neutral-800 min-w-[4rem] text-right">{CURRENCY}{order.total.toFixed(2)}</span>
+                </div>
               </div>
-              {orderDiscount > 0 && (
-                <div className="flex justify-between text-red-600">
-                  <span>Order discount</span>
-                  <span>−{CURRENCY}{orderDiscount.toFixed(2)}</span>
-                </div>
-              )}
-              {charge > 0 && (
-                <div className="flex justify-between">
-                  <span>Charge</span>
-                  <span>{CURRENCY}{charge.toFixed(2)}</span>
-                </div>
-              )}
-              {tips > 0 && (
-                <div className="flex justify-between">
-                  <span>Tips</span>
-                  <span>{CURRENCY}{tips.toFixed(2)}</span>
-                </div>
-              )}
             </div>
+          </div>
 
-            <div className="border-t border-b border-dashed border-gray-300 my-4" />
-
-            <div className="flex justify-between text-base font-bold">
-              <span>Grand total</span>
-              <span>{CURRENCY}{order.total.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm mt-2 text-green-700 font-semibold">
-              <span>Paid amount</span>
-              <span>{CURRENCY}{paidAmount.toFixed(2)}</span>
-            </div>
-            {changeAmount > 0 && (
-              <div className="flex justify-between text-sm mt-1 text-gray-600">
-                <span>Change</span>
-                <span>{CURRENCY}{changeAmount.toFixed(2)}</span>
+          {/* Payment Details */}
+          <div>
+            <h3 className="text-sm font-bold text-neutral-800 mb-3">Payment Details</h3>
+            <div className="grid gap-3">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0">Total Amt</label>
+                <span className="text-neutral-800">{CURRENCY}{totalAmt.toFixed(2)}</span>
               </div>
-            )}
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0">Discount</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0">Online</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={online}
+                  onChange={(e) => setOnline(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0">Cash</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={cash}
+                  onChange={(e) => setCash(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0">Balance</label>
+                <span className="text-neutral-800">{CURRENCY}{balance.toFixed(2)}</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <label className="text-sm font-bold text-neutral-800 w-20 shrink-0 pt-2">Note</label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={2}
+                  placeholder="Optional note..."
+                  className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 p-4 bg-gray-50 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            onClick={handlePrint}
-            disabled={isPrinting}
-            className="flex-1 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-          >
-            {isPrinting ? (
-              <>
-                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Printing...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print Bill
-              </>
-            )}
-          </button>
+        {/* Actions */}
+        <div className="border-t border-neutral-200 p-5 bg-neutral-50 space-y-3">
+          <div className="flex justify-start">
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="px-5 py-2.5 bg-success-500 text-white border border-success-500 rounded-xl font-semibold hover:bg-success-600 transition-colors"
+            >
+              Submit
+            </button>
+          </div>
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={handlePrint}
+              disabled={isPrinting}
+              className="px-4 py-2.5 bg-white border-2 border-primary-500 text-primary-600 rounded-xl font-semibold hover:bg-primary-50 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+            >
+              {isPrinting ? (
+                <>
+                  <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Printing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print Invoice
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 bg-white border-2 border-danger-500 text-danger-600 rounded-xl font-semibold hover:bg-danger-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

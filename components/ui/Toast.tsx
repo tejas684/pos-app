@@ -131,35 +131,44 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }
 
+  const toastStyles: Record<ToastType, string> = {
+    success:
+      'bg-white border border-success-200 shadow-medium text-success-800 [--toast-accent:theme(colors.success.500)]',
+    error:
+      'bg-white border border-danger-200 shadow-medium text-danger-800 [--toast-accent:theme(colors.danger.500)]',
+    warning:
+      'bg-white border border-warning-200 shadow-medium text-warning-800 [--toast-accent:theme(colors.warning.500)]',
+    info:
+      'bg-white border border-primary-200 shadow-medium text-primary-800 [--toast-accent:theme(colors.primary.500)]',
+  }
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`min-w-[300px] max-w-md px-4 py-3 rounded-lg shadow-lg flex items-center justify-between gap-4 animate-in slide-in-from-right ${
-              toast.type === 'success'
-                ? 'bg-green-500 text-white'
-                : toast.type === 'error'
-                ? 'bg-red-500 text-white'
-                : toast.type === 'warning'
-                ? 'bg-yellow-500 text-white'
-                : 'bg-blue-500 text-white'
-            }`}
-          >
-            <p className="flex-1 text-sm font-medium">{toast.message}</p>
-            <button
-              onClick={() => removeToast(toast.id)}
-              className="text-white hover:text-gray-200 transition-colors"
-              aria-label="Close toast"
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none">
+        <div className="flex flex-col gap-3 pointer-events-auto">
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`min-w-[300px] max-w-md pl-4 pr-3 py-3 rounded-xl flex items-center justify-between gap-4 animate-slide-in-right ${toastStyles[toast.type]}`}
+              style={{
+                borderLeftWidth: '4px',
+                borderLeftColor: 'var(--toast-accent)',
+              }}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        ))}
+              <p className="flex-1 text-sm font-medium">{toast.message}</p>
+              <button
+                onClick={() => removeToast(toast.id)}
+                className="p-1 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0"
+                aria-label="Close toast"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </ToastContext.Provider>
   )

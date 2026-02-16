@@ -7,14 +7,12 @@ interface OrderDetailsModalProps {
   isOpen: boolean
   onClose: () => void
   order: Order | null
-  onCreateInvoiceAndClose?: () => void
 }
 
 export default function OrderDetailsModal({
   isOpen,
   onClose,
   order,
-  onCreateInvoiceAndClose,
 }: OrderDetailsModalProps) {
   // Format order number (e.g., "mJH260123-005")
   const formatOrderNumber = (orderId: string) => {
@@ -76,16 +74,22 @@ export default function OrderDetailsModal({
     const tax = 0
 
     const tips = order.tips || 0
-    const charge = order.charge || 0
+    const selectedPersons = order.selectedPersons ?? 0
+    const pricePerPerson = order.pricePerPerson ?? 0
+    // Charge: use order.charge, or derive from persons × price when available
+    const charge = order.charge ?? (selectedPersons > 0 && pricePerPerson > 0 ? selectedPersons * pricePerPerson : 0)
+    const chargeRounded = Math.round(charge * 100) / 100
 
     return {
       totalProducts: order.items.length,
       subtotal: Math.round(subtotal * 100) / 100,
-      totalDiscount: Math.round(itemDiscounts * 100) / 100, // Only item discounts
-      orderDiscount: Math.round(orderDiscount * 100) / 100, // Order-level discount
+      totalDiscount: Math.round(itemDiscounts * 100) / 100,
+      orderDiscount: Math.round(orderDiscount * 100) / 100,
       tax: Math.round(tax * 100) / 100,
       tips: Math.round(tips * 100) / 100,
-      charge: Math.round(charge * 100) / 100,
+      charge: chargeRounded,
+      selectedPersons,
+      pricePerPerson: Math.round(pricePerPerson * 100) / 100,
       totalPayable: order.total,
     }
   }, [order])
@@ -117,22 +121,33 @@ export default function OrderDetailsModal({
     }
   }
 
+  // Format date for display (DD/MM/YYYY HH:mm)
+  const formatDate = (date: Date) => {
+    const d = new Date(date)
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    return `${day}/${month}/${year} ${hours}:${minutes}`
+  }
+
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in"
       onClick={onClose}
       onKeyDown={handleKeyDown}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-xl shadow-strong w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-bold text-gray-900">Order Details</h2>
+        {/* Header - Purple accent theme */}
+        <div className="px-6 py-4 bg-accent-600 flex items-center justify-between shrink-0">
+          <h2 className="text-xl font-bold text-white">Order Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-white hover:bg-white/20 rounded-lg transition-colors"
             aria-label="Close modal"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,75 +157,82 @@ export default function OrderDetailsModal({
         </div>
 
         {/* Modal Content */}
-        <div className="px-6 py-4 space-y-4">
-          {/* Order Information */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="px-6 py-5 space-y-5 overflow-y-auto flex-1">
+          {/* Order Information - Left: Order Type, Date | Right: Order Number, Area, Table, Customer */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
             <div>
-              <span className="text-gray-600">Order Type:</span>
-              <span className="ml-2 font-medium text-gray-900">{getOrderTypeLabel(order.orderType)}</span>
+              <span className="font-semibold text-gray-900">Order Type: </span>
+              <span className="text-gray-900">{getOrderTypeLabel(order.orderType)}</span>
             </div>
             <div>
-              <span className="text-gray-600">Order Number:</span>
-              <span className="ml-2 font-medium text-gray-900">{formatOrderNumber(order.id)}</span>
+              <span className="font-semibold text-gray-900">Order Number: </span>
+              <span className="text-gray-900">{formatOrderNumber(order.id)}</span>
             </div>
             <div>
-              <span className="text-gray-600">GARZÓN (Waiter):</span>
-              <span className="ml-2 font-medium text-gray-900">{order.waiter || 'N/A'}</span>
+              <span className="font-semibold text-gray-900">Date: </span>
+              <span className="text-gray-900">{formatDate(order.createdAt)}</span>
             </div>
             <div>
-              <span className="text-gray-600">Client:</span>
-              <span className="ml-2 font-medium text-gray-900">{order.customer}</span>
+              <span className="font-semibold text-gray-900">Area: </span>
+              <span className="text-gray-900">{order.area || '-'}</span>
             </div>
             <div>
-              <span className="text-gray-600">Table:</span>
-              <span className="ml-2 font-medium text-gray-900">{order.tableName || 'None'}</span>
+              <span className="font-semibold text-gray-900">Table Number: </span>
+              <span className="text-gray-900">{order.tableName || '-'}</span>
+            </div>
+            <div>
+              <span className="font-semibold text-gray-900">Customer Name: </span>
+              <span className="text-gray-900">{order.customer}</span>
             </div>
           </div>
 
-          {/* Items: Name & Price (and full line details) */}
-          <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-2">Items</h3>
+          {/* Items Table - Accent header theme */}
+          <div className="rounded-lg overflow-hidden border border-neutral-200 shadow-soft">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 font-semibold text-gray-700">Name</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Price</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Qty</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Discount</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">Total</th>
+                <tr className="bg-accent-700">
+                  <th className="text-left py-3 px-4 font-semibold text-white">Items</th>
+                  <th className="text-center py-3 px-4 font-semibold text-white">Size</th>
+                  <th className="text-center py-3 px-4 font-semibold text-white">Qty</th>
+                  <th className="text-center py-3 px-4 font-semibold text-white">Price</th>
+                  <th className="text-center py-3 px-4 font-semibold text-white">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {order.items.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-4 text-center text-gray-500">No items</td>
+                    <td colSpan={5} className="py-6 text-center text-neutral-500">No items</td>
                   </tr>
                 ) : (
                   order.items.map((item, index) => {
                     const itemPrice = item.price + (item.modifiers?.reduce((mSum, mod) => mSum + mod.price, 0) || 0)
-                    const itemDiscount = getItemDiscount(item)
                     const itemTotal = getItemTotal(item)
                     return (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-2 px-3 text-gray-900">
+                      <tr
+                        key={index}
+                        className={index % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}
+                      >
+                        <td className="py-3 px-4 text-gray-900">
                           <div>
                             <div className="font-medium">{item.name || 'Item'}</div>
                             {item.modifiers && item.modifiers.length > 0 && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-neutral-500 mt-0.5">
                                 {item.modifiers.map((mod, i) => (
                                   <span key={i}>+ {mod.name}</span>
                                 )).join(', ')}
                               </div>
                             )}
                             {item.notes && (
-                              <div className="text-xs text-gray-500 italic mt-1">Note: {item.notes}</div>
+                              <div className="text-xs text-neutral-500 italic mt-0.5">Note: {item.notes}</div>
                             )}
                           </div>
                         </td>
-                        <td className="py-2 px-3 text-right text-gray-900">₹{itemPrice.toFixed(2)}</td>
-                        <td className="py-2 px-3 text-right text-gray-900">{item.quantity}</td>
-                        <td className="py-2 px-3 text-right text-gray-900">₹{itemDiscount.toFixed(2)}</td>
-                        <td className="py-2 px-3 text-right font-medium text-gray-900">₹{itemTotal.toFixed(2)}</td>
+                        <td className="py-3 px-4 text-center text-gray-900">
+                          {item.selectedSize || '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center text-gray-900">{item.quantity}</td>
+                        <td className="py-3 px-4 text-center text-gray-900">₹{itemPrice.toFixed(2)}</td>
+                        <td className="py-3 px-4 text-center font-medium text-gray-900">₹{itemTotal.toFixed(2)}</td>
                       </tr>
                     )
                   })
@@ -219,67 +241,37 @@ export default function OrderDetailsModal({
             </table>
           </div>
 
-          {/* Summary Information */}
-          <div className="border-t border-gray-200 pt-4 space-y-2 text-sm">
+          {/* Order Summary - Clean layout like the image */}
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Total products:</span>
-              <span className="font-medium text-gray-900">{orderTotals.totalProducts}</span>
+              <span className="font-semibold text-gray-900">SubTotal:</span>
+              <span className="text-gray-900">₹{orderTotals.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Sub Total:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.subtotal.toFixed(2)}</span>
+              <span className="font-semibold text-gray-900">
+                {orderTotals.selectedPersons > 0 && orderTotals.pricePerPerson > 0
+                  ? `Charge (${orderTotals.selectedPersons} person(s) @ ₹${orderTotals.pricePerPerson.toFixed(2)}):`
+                  : 'Charge:'}
+              </span>
+              <span className="text-gray-900">₹{orderTotals.charge.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Total Discount:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.totalDiscount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Discount:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.orderDiscount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Tips:</span>
-              <span className="font-medium text-gray-900">₹{orderTotals.tips.toFixed(2)}</span>
-            </div>
-            {orderTotals.charge > 0 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Charge:</span>
-                <span className="font-medium text-gray-900">₹{orderTotals.charge.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Total Payable */}
-          <div className="border-t-2 border-gray-300 pt-4">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-bold text-gray-900">Total payable</span>
-              <span className="text-2xl font-bold text-gray-900">₹{orderTotals.totalPayable.toFixed(2)}</span>
+            <div className="flex justify-between pt-2 border-t border-neutral-200">
+              <span className="font-bold text-gray-900">Total:</span>
+              <span className="font-bold text-accent-600">₹{orderTotals.totalPayable.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex gap-3 sticky bottom-0 bg-white">
-          {onCreateInvoiceAndClose && (
+        {/* Footer - Success green close button */}
+        <div className="px-6 py-4 border-t border-neutral-200 shrink-0 bg-neutral-50">
+          <div className="flex justify-end">
             <button
-              onClick={() => {
-                onCreateInvoiceAndClose()
-                onClose()
-              }}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              onClick={onClose}
+              className="px-6 py-2.5 bg-success-500 text-white rounded-lg font-semibold hover:bg-success-600 transition-colors shadow-soft"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Create Invoice and Close
+              Close
             </button>
-          )}
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-          >
-            Close
-          </button>
+          </div>
         </div>
       </div>
     </div>

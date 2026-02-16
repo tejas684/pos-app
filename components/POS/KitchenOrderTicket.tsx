@@ -191,48 +191,20 @@ export default function KitchenOrderTicket({
     }
   }, [autoPrint, autoDownload])
 
-  // Order type labels – must match ExecutionOrdersSidebar and OrderDetailsModal
-  const getOrderTypeLabel = (type: string) => {
-    switch (type) {
-      case 'dine-in':
-        return 'Dine in'
-      case 'take-away':
-        return 'Takeaway'
-      case 'delivery':
-        return 'Delivery'
-      default:
-        return type
-    }
-  }
-
-  // Format date and time
-  const formatDateTime = (date: Date) => {
+  // Format date and time for KOT (DD-MM-YYYY HH:mm)
+  const formatKOTDate = (date: Date) => {
     const d = new Date(date)
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     const hours = String(d.getHours()).padStart(2, '0')
     const minutes = String(d.getMinutes()).padStart(2, '0')
-    const seconds = String(d.getSeconds()).padStart(2, '0')
-    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+    return `${day}-${month}-${year} ${hours}:${minutes}`
   }
 
-  // Only show values from place order API response (order_no, order_id) – no client-side generation
   const displayOrderNumber = (order.orderNumber ?? order.id) || '—'
-  const orderIdDisplay = order.id || '—'
-  const tableBase = order.tableName ?? (order.tableId ? `Table ${order.tableId}` : null) ?? 'None'
-  const tableDisplay = order.area?.trim() ? `${order.area} – ${tableBase}` : tableBase
+  const tableBase = order.tableName ?? (order.tableId ? `Table ${order.tableId}` : '—')
   const orderItems = order.items ?? []
-
-  // Status labels – KOT uses "Placed" for newly placed orders instead of "Pending"
-  const STATUS_LABELS: Record<Order['status'], string> = {
-    pending: 'Placed',
-    preparing: 'Preparing',
-    ready: 'Ready',
-    served: 'Served',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-  }
 
   const handleClose = () => {
     setShowModal(false)
@@ -309,114 +281,57 @@ export default function KitchenOrderTicket({
             className="kot-print-container bg-white p-6"
           >
             {/* Header */}
-            <div className="text-center mb-6 pb-4 border-b-2 border-gray-200">
-              <h1 className="text-2xl font-bold mb-2 text-gray-800">COCINA: Kitchen</h1>
-              <p className="text-sm text-gray-500">Kitchen Order Ticket</p>
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-600">KOT</p>
+              <h1 className="text-2xl font-bold text-gray-800">KOT</h1>
+              <p className="text-sm text-gray-600 mt-2">Order No: <span className="font-mono font-bold">{displayOrderNumber}</span></p>
             </div>
 
-            {/* Order Details – same order and labels as Execution orders sidebar; real order number & id from API */}
-            <div className="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Customer:</span>
-                <span className="text-gray-900 font-medium">{order.customer}</span>
+            {/* Order Details - Area, Table, Date only */}
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Area</span>
+                <span className="font-medium text-gray-900">{order.area?.trim() || '—'}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Order No:</span>
-                <span className="font-mono font-bold text-gray-900">{displayOrderNumber}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Table</span>
+                <span className="font-medium text-gray-900">{tableBase}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Order ID:</span>
-                <span className="font-mono font-medium text-gray-900">{orderIdDisplay}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Order Type:</span>
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                  {getOrderTypeLabel(order.orderType)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Table:</span>
-                <span className="font-medium text-gray-900">
-                  <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">{tableDisplay}</span>
-                </span>
-              </div>
-              {order.waiter && (
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-700">Waiter:</span>
-                  <span className="text-gray-900 font-medium">{order.waiter}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Status:</span>
-                <span className={`shrink-0 px-2 py-1 rounded text-xs font-semibold uppercase ${
-                  (order.status ?? 'pending') === 'pending' ? 'bg-amber-100 text-amber-800' :
-                  order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                  order.status === 'ready' ? 'bg-emerald-100 text-emerald-800' :
-                  order.status === 'served' ? 'bg-violet-100 text-violet-800' :
-                  order.status === 'completed' ? 'bg-neutral-100 text-neutral-600' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {order.status != null && order.status in STATUS_LABELS ? STATUS_LABELS[order.status] : 'Placed'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Date & Time:</span>
-                <span className="text-gray-600 text-sm">{formatDateTime(order.createdAt)}</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Date</span>
+                <span className="font-medium text-gray-900">{formatKOTDate(order.createdAt)}</span>
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="border-t-2 border-dashed border-gray-300 my-4"></div>
+            {/* Dashed divider */}
+            <div className="border-t border-dashed border-gray-400 my-4"></div>
 
-            {/* Items List */}
-            <div className="mb-6">
-              <h3 className="font-bold text-lg mb-4 text-gray-800">Order Items:</h3>
-              <div className="space-y-4">
-                {orderItems.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">No items in this order.</p>
-                ) : (
-                orderItems.map((item, index) => {
-                  const itemPrice = item.price + (item.modifiers?.reduce((sum, mod) => sum + mod.price, 0) || 0)
-                  return (
-                    <div key={item.lineItemId || `${item.id}-${index}`} className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="bg-gray-200 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                              {index + 1}
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {item.name}
-                              {item.selectedSize && <span className="text-gray-600 font-normal"> ({item.selectedSize})</span>}
-                            </span>
-                          </div>
-                          {item.modifiers && item.modifiers.length > 0 && (
-                            <div className="text-xs text-gray-600 mt-2 ml-8 space-y-1">
-                              {item.modifiers.map((mod, modIndex) => (
-                                <div key={modIndex} className="flex items-center gap-1">
-                                  <span className="text-green-600">+</span>
-                                  <span>{mod.name}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {item.notes && (
-                            <div className="text-xs text-gray-600 mt-2 ml-8 italic bg-yellow-50 p-2 rounded border-l-2 border-yellow-400">
-                              📝 Note: {item.notes}
-                            </div>
-                          )}
-                        </div>
-                        <div className="ml-4 bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold text-sm">
-                          {item.quantity}x
-                        </div>
-                      </div>
+            {/* Items - Item | Qty */}
+            <div className="mb-4">
+              <div className="flex justify-between text-sm font-semibold text-gray-700 pb-2">
+                <span>Item</span>
+                <span>Qty</span>
+              </div>
+              <div className="border-t border-dashed border-gray-400"></div>
+              {orderItems.length === 0 ? (
+                <p className="text-sm text-gray-500 italic py-2">No items in this order.</p>
+              ) : (
+                <>
+                  {orderItems.map((item, index) => (
+                    <div key={item.lineItemId || `${item.id}-${index}`} className="flex justify-between text-sm py-1">
+                      <span className="text-gray-900">{item.name}{item.selectedSize ? ` (${item.selectedSize})` : ''}</span>
+                      <span className="font-medium text-gray-900">{item.quantity}</span>
                     </div>
-                  )
-                })
-                )}
-              </div>
+                  ))}
+                  <div className="border-t border-dashed border-gray-400 mt-2"></div>
+                </>
+              )}
             </div>
 
+            {/* Footer */}
+            <div className="text-center text-sm text-gray-600 font-medium pt-2">
+              --- END OF KOT ---
+            </div>
           </div>
 
           {/* Action Buttons (only visible on screen, not in print) */}

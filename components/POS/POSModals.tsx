@@ -58,7 +58,6 @@ export interface POSModalsProps {
   showOrderDetailsModal: boolean
   selectedOrderForDetails: Order | null
   onCloseOrderDetails: () => void
-  onCreateInvoiceFromDetails: () => void
 
   lastPaidOrderForInvoice: Order | null
   onCloseInvoice: () => void
@@ -112,7 +111,6 @@ export default function POSModals({
   showOrderDetailsModal,
   selectedOrderForDetails,
   onCloseOrderDetails,
-  onCreateInvoiceFromDetails,
 
   lastPaidOrderForInvoice,
   onCloseInvoice,
@@ -187,7 +185,6 @@ export default function POSModals({
         isOpen={showOrderDetailsModal}
         onClose={onCloseOrderDetails}
         order={selectedOrderForDetails}
-        onCreateInvoiceAndClose={onCreateInvoiceFromDetails}
       />
 
       {lastPaidOrderForInvoice && (

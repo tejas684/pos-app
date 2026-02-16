@@ -24,6 +24,8 @@ function getItemLineTotals(item: CartItem) {
   return { unitPrice, lineTotal, itemDiscount, totalAfterDiscount, isPercentage, rawDiscount }
 }
 
+import { printInvoice as printInvoiceFromLib } from '@/lib/invoicePrint'
+
 export interface BillSummaryValues {
   mrp: number
   sellingPrice: number
@@ -41,6 +43,8 @@ export interface PaymentModalPayload {
   amount: number
   change?: number
   cardDetails?: OrderPaymentCardDetails
+  /** When true, parent should show the invoice modal after payment (e.g. after "Print Invoice"). */
+  showInvoiceAfter?: boolean
 }
 
 /** Cart context for invoice-style display when opening Payment from cart (same as Invoice modal). */
@@ -100,6 +104,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
   const [cashStr, setCashStr] = useState('0')
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
 
   // Cart-based payment state (when no order – Finalize Sale from cart)
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
@@ -142,6 +147,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
         setOnlineStr('0')
         setCashStr(total.toFixed(2))
       }
+      setPaymentSuccess(false)
     } else {
       prefillCashForOrderIdRef.current = null
     }
@@ -178,7 +184,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
     setAmountReceived(value)
   }
 
-  const submitOrderPayment = async (openInvoiceAfter: boolean) => {
+  const submitOrderPayment = async (shouldPrintInvoice: boolean) => {
     if (!order || !canSubmitOrderPayment) return
     const orderIdNum = Number(order.id)
     if (Number.isNaN(orderIdNum)) {
@@ -195,12 +201,13 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
         cash_amount: cashNum,
         note: (note ?? '').trim(),
       })
-      onPayment({ method: 'cash', amount: totalAmount })
-      onClose()
-      showToast('Payment submitted successfully', 'success')
-      if (openInvoiceAfter) {
-        // Parent will show invoice modal via lastPaidOrderForInvoice; no extra action here
+      const paidOrder: Order = { ...order, status: 'completed', payment: { method: 'cash', amount: totalAmount } }
+      if (shouldPrintInvoice) {
+        await printInvoiceFromLib(paidOrder, CURRENCY_SYMBOL)
       }
+      onPayment({ method: 'cash', amount: totalAmount, showInvoiceAfter: false })
+      setPaymentSuccess(true)
+      showToast('Payment submitted successfully', 'success')
     } catch (e: unknown) {
       const message = e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : 'Payment failed'
       showToast(message, 'error')
@@ -248,14 +255,57 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
   if (isOrderPayment && order) {
     const orderNumber = order.orderNumber ?? order.id
     const tips = order.tips ?? 0
-    const charge = order.charge ?? 0
+    const selectedPersons = order.selectedPersons ?? 0
+    const pricePerPerson = order.pricePerPerson ?? 0
+    const charge = order.charge ?? (selectedPersons > 0 && pricePerPerson > 0 ? selectedPersons * pricePerPerson : 0)
     const orderDiscount = order.discount ?? 0
     const items = order.items ?? []
     const itemsLoading = items.length === 0
 
+    if (paymentSuccess) {
+      const paidOrderForPrint: Order = { ...order, status: 'completed', payment: { method: 'cash', amount: totalAmount } }
+      const handlePrintFromSuccess = () => {
+        printInvoiceFromLib(paidOrderForPrint, CURRENCY_SYMBOL)
+      }
+      return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 xs:p-4 overflow-y-auto">
+          <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-md mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
+            <div className="p-8 text-center">
+              <div className="mx-auto w-14 h-14 rounded-full bg-success-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Payment is paid successfully</h2>
+              <p className="text-gray-600 mb-6">Order {orderNumber} has been completed.</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  type="button"
+                  onClick={handlePrintFromSuccess}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-3 bg-primary-500 text-white rounded-xl font-semibold hover:bg-primary-600 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 xs:p-4 overflow-y-auto">
-        <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-2xl mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
+        <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-md mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
           <div className="border-b border-gray-200 px-4 sm:px-5 py-4 bg-gradient-to-b from-white to-gray-50/50">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Payment</h2>
@@ -342,9 +392,13 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                       <span>−{CURRENCY_SYMBOL}{orderDiscount.toFixed(2)}</span>
                     </div>
                   )}
-                  {!itemsLoading && charge > 0 && (
+                  {!itemsLoading && (
                     <div className="flex justify-between text-gray-700">
-                      <span>Charge</span>
+                      <span>
+                        {selectedPersons > 0 && pricePerPerson > 0
+                          ? `Charge (${selectedPersons} person(s) @ ${CURRENCY_SYMBOL}${pricePerPerson.toFixed(2)})`
+                          : 'Charge'}
+                      </span>
                       <span>{CURRENCY_SYMBOL}{charge.toFixed(2)}</span>
                     </div>
                   )}
@@ -365,8 +419,8 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
             {/* Payment Details */}
             <div>
               <h3 className="text-sm font-semibold text-gray-800 mb-3">Payment Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex items-center justify-between gap-2 sm:col-span-2">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-2">
                   <label className="text-sm text-gray-700">Total Amt</label>
                   <input
                     type="text"
@@ -408,7 +462,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
-                <div className="flex items-center justify-between gap-2 sm:col-span-2">
+                <div className="flex items-center justify-between gap-2">
                   <label className="text-sm text-gray-700">Balance</label>
                   <input
                     type="text"
@@ -417,7 +471,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-right font-medium"
                   />
                 </div>
-                <div className="sm:col-span-2">
+                <div>
                   <label className="block text-sm text-gray-700 mb-1">Note</label>
                   <textarea
                     value={note}
@@ -522,7 +576,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" aria-modal="true" role="dialog">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
           <h2 className="text-lg font-bold text-gray-900">Invoice / Bill</h2>
           <button

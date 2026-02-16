@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import CartItemOptionsModal from './CartItemOptionsModal'
 import type { Order } from '@/types/pos'
 
 const STATUS_LABELS: Record<Order['status'], string> = {
@@ -86,7 +85,6 @@ export default function OrderSummary({
   const canActOnOrder = !!orderForActions && !!hasExecutionHandlers && !!selectedExecutionOrderId
   const [showCalendar, setShowCalendar] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [showCartItemOptions, setShowCartItemOptions] = useState(false)
   const calendarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -128,16 +126,6 @@ export default function OrderSummary({
               />
             </div>
           )}
-          <button 
-            onClick={() => setShowCartItemOptions(true)}
-            className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all hover:text-primary-600"
-            aria-label="View cart item options"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
         </div>
         <div className="flex flex-col items-start sm:items-end gap-0.5 w-full sm:w-auto">
           {/* Breakdown: Subtotal ± Order discount + Tips = Total */}
@@ -268,23 +256,6 @@ export default function OrderSummary({
           </>
         )}
       </div>
-
-      {/* Cart Item Options Modal */}
-      <CartItemOptionsModal
-        isOpen={showCartItemOptions}
-        onClose={() => setShowCartItemOptions(false)}
-        totalItems={cartItemsCount}
-        subtotal={subtotal}
-        discount={discount}
-        discountType={discountType}
-        totalDiscount={totalDiscount}
-        tax={tax}
-        tips={tips}
-        cartItems={cartItems}
-        taxRate={taxRate}
-        onUpdateDiscount={onUpdateDiscount}
-        onUpdateTips={onUpdateTips}
-      />
     </div>
   )
 }

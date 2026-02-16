@@ -442,6 +442,7 @@ export interface PlaceOrderRequest {
   order_type: 'dine-in' | 'take-away' | 'delivery'
   areas: string
   table_number: string
+  table_id?: string
   selected_persons: string
   price_per_person: string
   total_charge: number
@@ -536,15 +537,16 @@ export async function cancelOrderApi(orderId: string, reason: string): Promise<C
 
 // ---------------------------------------------------------------------------
 // Update Order API (api/orders/:orderId/update)
+// Same request structure as Place Order per API docs.
 // ---------------------------------------------------------------------------
 
 export interface UpdateOrderCartItem {
-  order_id: number
   product_id: number
   product_name: string
   size_id: number | null
   size_name: string | null
   quantity: number
+  unit_price: number
   total_price: number
 }
 
@@ -556,8 +558,9 @@ export interface UpdateOrderRequest {
   table_number: string
   selected_persons: string
   price_per_person: string
-  total_charge: string
-  total_price: string
+  total_charge: number
+  delivery_partner: string | null
+  total_price: number
   cart: UpdateOrderCartItem[]
 }
 
@@ -567,9 +570,9 @@ export interface UpdateOrderResponse {
   [key: string]: unknown
 }
 
-/** Update an existing order. POST api/orders/:orderId/update with order body (customer, waiter, table, cart, etc.). */
+/** Update an existing order. PUT api/orders/:orderId/update with order body (customer, waiter, table, cart, etc.). */
 export async function updateOrderApi(orderId: string, body: UpdateOrderRequest): Promise<UpdateOrderResponse> {
-  return apiPost<UpdateOrderResponse>(`api/orders/${encodeURIComponent(orderId)}/update`, body)
+  return apiPut<UpdateOrderResponse>(`api/orders/${encodeURIComponent(orderId)}/update`, body)
 }
 
 // ---------------------------------------------------------------------------
@@ -710,6 +713,22 @@ export function mapPlaceOrderResponseToOrder(
   const waiterObj = raw.waiter as { name?: string } | undefined
   const customerName = typeof customerObj?.name === 'string' ? customerObj.name : (raw.customer_name != null ? String(raw.customer_name) : fallbackCustomerName)
   const waiterName = typeof waiterObj?.name === 'string' ? waiterObj.name : (raw.waiter_name != null ? String(raw.waiter_name) : fallbackWaiterName)
+  const rawRecord = raw as Record<string, unknown>
+  const chargeNum = raw.charge != null ? Number(raw.charge) : 0
+  const COVER_CHARGE_PER_PERSON = 20 // Must match hooks/pos/constants.ts CHARGE_PER_PERSON
+  let selectedPersons: number | undefined = rawRecord.selected_persons != null
+    ? Math.max(0, parseInt(String(rawRecord.selected_persons), 10) || 0)
+    : undefined
+  let pricePerPerson: number | undefined = rawRecord.price_per_person != null && String(rawRecord.price_per_person).trim() !== ''
+    ? Number(rawRecord.price_per_person) || undefined
+    : undefined
+  if (selectedPersons === undefined && chargeNum > 0 && COVER_CHARGE_PER_PERSON > 0) {
+    selectedPersons = Math.max(1, Math.round(chargeNum / COVER_CHARGE_PER_PERSON))
+    pricePerPerson = COVER_CHARGE_PER_PERSON
+  }
+  const areaVal = rawRecord.areas ?? rawRecord.area
+  const area = typeof areaVal === 'string' && areaVal.trim() !== '' ? String(areaVal).trim() : undefined
+
   return {
     id,
     ...(orderNumber && { orderNumber }),
@@ -726,5 +745,8 @@ export function mapPlaceOrderResponseToOrder(
     tips: raw.tips != null ? Number(raw.tips) : undefined,
     createdAt,
     waiter: String(waiterName),
+    ...(area && { area }),
+    ...(selectedPersons !== undefined && selectedPersons > 0 && { selectedPersons }),
+    ...(pricePerPerson !== undefined && pricePerPerson >= 0 && { pricePerPerson }),
   }
 }

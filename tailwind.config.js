@@ -109,6 +109,19 @@ module.exports = {
           900: '#7f1d1d',
           950: '#450a0a',
         },
+        // Garden - emerald green (#33CC66) for Garden area
+        garden: {
+          50: '#e8f9ee',
+          100: '#c6f0d4',
+          200: '#9ae5b5',
+          300: '#6bd993',
+          400: '#44cc77',
+          500: '#33CC66',
+          600: '#2db85c',
+          700: '#26994f',
+          800: '#1f7a42',
+          900: '#185c34',
+        },
         // Neutral grays for better contrast
         neutral: {
           50: '#fafafa',
@@ -156,8 +169,12 @@ module.exports = {
         'fade-in': 'fadeIn 0.3s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'slide-down': 'slideDown 0.3s ease-out',
+        'slide-in-right': 'slideInRight 0.25s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'live-glow': 'liveGlow 2s ease-in-out infinite',
+        'live-ring': 'liveRing 2s ease-out infinite',
+        'live-dot': 'liveDot 1.5s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -172,9 +189,26 @@ module.exports = {
           '0%': { transform: 'translateY(-10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
         scaleIn: {
           '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        liveGlow: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 255, 255, 0.5), 0 4px 14px rgba(0, 0, 0, 0.08)' },
+          '50%': { boxShadow: '0 0 0 4px rgba(255, 255, 255, 0.6), 0 0 24px rgba(255, 255, 255, 0.25), 0 6px 20px rgba(0, 0, 0, 0.1)' },
+        },
+        liveRing: {
+          '0%': { transform: 'scale(1)', opacity: '0.6' },
+          '50%': { transform: 'scale(1.08)', opacity: '0.3' },
+          '100%': { transform: 'scale(1)', opacity: '0.6' },
+        },
+        liveDot: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.5', transform: 'scale(1.2)' },
         },
       },
     },

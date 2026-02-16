@@ -26,24 +26,26 @@ export function validateWaiterAndCustomer(
 ): ValidatedWaiterCustomer | null {
   const waiterMatch = posData.waiters.find((w) => (w.name ?? String(w.id)) === waiter)
   const selectedName = customer.trim()
+  const isWalkIn = selectedName.toLowerCase() === 'walk-in customer'
   const apiMatch = posData.customers.find(
     (c) => getApiCustomerFullName({ ...c, id: String(c.id) } as ApiCustomer).toLowerCase() === selectedName.toLowerCase()
   )
   const newMatch = newlyAddedCustomers.find(
     (c) => getCustomerFullNameForEdit(c).toLowerCase() === selectedName.toLowerCase()
   )
-  const customerMatch = apiMatch ?? newMatch ?? null
+  let customerMatch = apiMatch ?? newMatch ?? null
+
+  // Walk-in is the default customer; if not in API list, use first customer as fallback so we don't ask user to "select customer"
+  if (isWalkIn && !customerMatch && posData.customers.length > 0) {
+    const first = posData.customers[0]
+    if (first?.id != null) customerMatch = first as ApiCustomer & { id: string | number }
+  }
 
   if (!waiterMatch || waiterMatch.id == null) {
     showToast('Please select a waiter from the list.', 'error')
     return null
   }
-  if (
-    !selectedName ||
-    selectedName.toLowerCase() === 'walk-in customer' ||
-    !customerMatch ||
-    customerMatch.id == null
-  ) {
+  if (!selectedName || !customerMatch || customerMatch.id == null) {
     showToast('Please select a customer from the list.', 'error')
     return null
   }

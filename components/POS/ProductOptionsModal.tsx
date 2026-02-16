@@ -60,15 +60,6 @@ interface ProductOptionsModalProps {
   }) => void
 }
 
-// Default size (base price) + Medium, Large, Extra Large sizes
-// Default size should be added dynamically based on product price
-const getDefaultSizes = (basePrice: number): ProductSize[] => [
-  { id: 'default', name: 'Default', price: basePrice, color: '#6B7280' }, // Gray
-  { id: 'medium', name: 'Medium', price: 180, color: '#3B82F6' }, // Blue
-  { id: 'large', name: 'Large', price: 220, color: '#10B981' }, // Green
-  { id: 'xlarge', name: 'Extra Large', price: 260, color: '#F59E0B' }, // Amber
-]
-
 export default function ProductOptionsModal({
   isOpen,
   product,
@@ -77,90 +68,33 @@ export default function ProductOptionsModal({
   onAddToCart,
 }: ProductOptionsModalProps) {
   const [quantity, setQuantity] = useState(1)
-  const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null)
+  const [priceInput, setPriceInput] = useState('')
   const [discountInput, setDiscountInput] = useState('')
   const [notes, setNotes] = useState('')
-  const [showSizeDropdown, setShowSizeDropdown] = useState(false)
-
-  // Get available sizes and modifiers for the product
-  // Always include default size (base price) above Medium
-  const availableSizes = useMemo(() => {
-    const basePrice = product?.price || 0
-    if (product?.sizes && product.sizes.length > 0) {
-      // Check if default size already exists
-      const hasDefault = product.sizes.some(s => s.id === 'default')
-      if (hasDefault) {
-        // Ensure default is first, then others
-        const defaultSize = product.sizes.find(s => s.id === 'default')
-        const otherSizes = product.sizes.filter(s => s.id !== 'default')
-        return defaultSize ? [defaultSize, ...otherSizes] : product.sizes
-      } else {
-        // Add default size at the beginning
-        return [
-          { id: 'default', name: 'Default', price: basePrice, color: '#6B7280' },
-          ...product.sizes
-        ]
-      }
-    }
-    // If no sizes defined, use default sizes with base price
-    return getDefaultSizes(basePrice)
-  }, [product])
 
   // Reset state when modal opens/closes or product changes
-  // If editing, pre-populate with cart item data
   useEffect(() => {
     if (isOpen && product) {
       if (editingCartItem) {
-        // Pre-populate with cart item data
         setQuantity(editingCartItem.quantity)
+        setPriceInput(editingCartItem.price.toFixed(2))
         setDiscountInput(editingCartItem.discount ? `${editingCartItem.discount}%` : '')
         setNotes(editingCartItem.notes || '')
-        
-        // Set selected size if it exists
-        if (editingCartItem.selectedSize) {
-          const size = availableSizes.find(s => s.name === editingCartItem.selectedSize)
-          if (size) {
-            setSelectedSize(size)
-          } else if (editingCartItem.selectedSize === 'Default') {
-            // Find default size
-            const defaultSize = availableSizes.find(s => s.id === 'default')
-            if (defaultSize) {
-              setSelectedSize(defaultSize)
-            }
-          }
-        }
       } else {
-        // New product - reset to defaults; default-select first size
         setQuantity(1)
-        setSelectedSize(availableSizes[0] ?? null)
+        setPriceInput((product.price || 0).toFixed(2))
         setDiscountInput('')
         setNotes('')
       }
-      setShowSizeDropdown(false)
     }
-  }, [isOpen, product?.id, editingCartItem, availableSizes])
+  }, [isOpen, product?.id, product?.price, editingCartItem])
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as HTMLElement
-      if (!target.closest('.size-dropdown-container')) {
-        setShowSizeDropdown(false)
-      }
-    }
-
-    if (isOpen && showSizeDropdown) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen, showSizeDropdown])
-
-  // Calculate prices
-  // This logic works for all product types:
-  // - Products with sizes: unitPrice = selectedSize.price (replaces base price)
-  // - Products without sizes: unitPrice = product.price (base price)
-  // DO NOT add base + size together - size price REPLACES base price
-  const unitPrice = selectedSize ? selectedSize.price : (product?.price || 0)
+  // Editable unit price: use priceInput if valid, else fallback to product price
+  const unitPrice = useMemo(() => {
+    const parsed = parseFloat(priceInput)
+    if (!Number.isNaN(parsed) && parsed >= 0) return parsed
+    return product?.price ?? 0
+  }, [priceInput, product?.price])
   const fullUnitPrice = unitPrice
 
   // Parse discount input — percentage only (0–100)
@@ -188,23 +122,11 @@ export default function ProductOptionsModal({
     return Math.round((Math.max(0, lineTotal - discountAmount)) * 100) / 100
   }, [lineTotal, discountAmount])
 
-  const handleSizeSelect = (size: ProductSize) => {
-    setSelectedSize(size)
-    setShowSizeDropdown(false)
-  }
-
   const handleAddToCart = () => {
     if (!product) return
-
-    // Check if sizes are available and a size must be selected
-    if (availableSizes.length > 0 && !selectedSize) {
-      return // Don't add to cart if size is required but not selected
-    }
-
     const cartItem = {
       id: product.id,
       name: product.name,
-      // Send the unit price (size price OR base price, NOT base + size)
       price: unitPrice,
       quantity,
       category: product.category,
@@ -213,15 +135,11 @@ export default function ProductOptionsModal({
       notes: notes.trim() || undefined,
       discount: parsedDiscount?.value,
       discountType: parsedDiscount?.type,
-      selectedSize: selectedSize?.name,
+      selectedSize: undefined,
     }
-
     onAddToCart(cartItem)
     onClose()
   }
-
-  // Check if add to cart should be disabled
-  const isAddToCartDisabled = availableSizes.length > 0 && !selectedSize
 
   if (!isOpen || !product) return null
 
@@ -251,6 +169,24 @@ export default function ProductOptionsModal({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* Editable Price */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Price (₹)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={priceInput}
+              onChange={(e) => setPriceInput(e.target.value)}
+              onBlur={(e) => {
+                const v = parseFloat(e.target.value)
+                if (!Number.isNaN(v) && v >= 0) setPriceInput(v.toFixed(2))
+              }}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+              placeholder="0.00"
+            />
+          </div>
+
           {/* Quantity */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -288,90 +224,6 @@ export default function ProductOptionsModal({
               <span className="ml-auto text-base font-semibold text-gray-900">₹{(unitPrice * quantity).toFixed(2)}</span>
             </div>
           </div>
-
-          {/* Size Selection - Simple Dropdown */}
-          {availableSizes.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">Size</label>
-                {!selectedSize && (
-                  <span className="text-xs text-red-500 font-medium">Required</span>
-                )}
-              </div>
-              <div className="relative size-dropdown-container">
-                <button
-                  type="button"
-                  onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-                  className={`w-full px-4 py-3 border-2 rounded-xl text-sm text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent flex items-center justify-between gap-2 transition-all duration-200 ${
-                    selectedSize
-                      ? 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-300 shadow-md'
-                      : 'bg-white border-gray-300 hover:border-indigo-400 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {selectedSize?.color && (
-                      <div 
-                        className="w-5 h-5 rounded-full flex-shrink-0 border-2 shadow-sm"
-                        style={{ 
-                          backgroundColor: selectedSize.color,
-                          borderColor: selectedSize.color,
-                          boxShadow: `0 2px 8px ${selectedSize.color}40`
-                        }}
-                      />
-                    )}
-                    <span className={`truncate font-medium ${selectedSize ? 'text-gray-900' : 'text-gray-500'}`}>
-                      {selectedSize ? `${selectedSize.name} – ₹${selectedSize.price.toFixed(2)}` : 'Select size...'}
-                    </span>
-                  </div>
-                  <svg
-                    className={`w-5 h-5 transition-transform duration-200 flex-shrink-0 ${showSizeDropdown ? 'rotate-180' : ''} ${selectedSize ? 'text-indigo-600' : 'text-gray-400'}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showSizeDropdown && (
-                  <div className="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border-2 border-gray-200 max-h-60 overflow-y-auto backdrop-blur-sm">
-                    <div className="py-2">
-                      {availableSizes.map((size) => {
-                        const isSelected = selectedSize?.id === size.id
-                        return (
-                          <button
-                            key={size.id}
-                            type="button"
-                            onClick={() => handleSizeSelect(size)}
-                            className={`w-full text-left px-4 py-3 text-sm transition-all duration-200 flex items-center gap-3 ${
-                              isSelected
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold shadow-lg shadow-indigo-500/30'
-                                : 'text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:font-medium'
-                            }`}
-                          >
-                            {size.color && (
-                              <div 
-                                className={`w-5 h-5 rounded-full flex-shrink-0 border-2 transition-all ${
-                                  isSelected ? 'border-white shadow-md' : 'border-gray-300'
-                                }`}
-                                style={{ 
-                                  backgroundColor: size.color,
-                                  boxShadow: isSelected ? `0 2px 8px ${size.color}60` : undefined
-                                }}
-                              />
-                            )}
-                            <div className="flex items-center justify-between flex-1 min-w-0">
-                              <span className="truncate">{size.name}</span>
-                              <span className={`ml-2 flex-shrink-0 font-bold ${isSelected ? 'text-white' : 'text-gray-600'}`}>₹{size.price.toFixed(2)}</span>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Discount */}
           <div>
@@ -418,19 +270,9 @@ export default function ProductOptionsModal({
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={isAddToCartDisabled}
-            className={`flex-1 px-4 py-3 font-semibold rounded-xl transition-all ${
-              isAddToCartDisabled
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white hover:shadow-lg'
-            }`}
+            className="flex-1 px-4 py-3 font-semibold rounded-xl transition-all bg-blue-500 hover:bg-blue-600 text-white hover:shadow-lg"
           >
-            {isAddToCartDisabled 
-              ? 'Please select a size' 
-              : editingCartItem 
-                ? 'Update in Cart' 
-                : 'Add to cart'
-            }
+            {editingCartItem ? 'Update in Cart' : 'Add to cart'}
           </button>
           <button
             type="button"

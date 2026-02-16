@@ -168,8 +168,16 @@ export interface Order {
   tips?: number
   createdAt: Date
   waiter?: string
+  /** Customer ID from API (used when updating order without re-selecting customer). */
+  customerId?: number
+  /** Waiter ID from API (used when updating order without re-selecting waiter). */
+  waiterId?: number
   /** Area for table (e.g. "Garden", "Hall") – shown on KOT with table. */
   area?: string
+  /** Number of persons (extras) – shown on KOT, order details, and invoice. */
+  selectedPersons?: number
+  /** Price per person (e.g. cover charge) – shown on invoice. */
+  pricePerPerson?: number
   /** Set when order is paid/completed via Finalize Sale. */
   payment?: OrderPayment
 }
