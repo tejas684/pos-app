@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect } from 'react'
 
-/** Form data for Add Customer – matches API api/store/customers (name, mobile only) */
+/** Form data for Add Customer – matches API api/store/customers (name, last_name, mobile) */
 export interface AddCustomerFormData {
   name: string
+  last_name: string
   mobile: string
 }
 
@@ -31,6 +32,7 @@ interface AddCustomerModalProps {
 
 const initialState: AddCustomerFormData = {
   name: '',
+  last_name: '',
   mobile: '',
 }
 
@@ -46,9 +48,9 @@ export default function AddCustomerModal({
   // Load customer data when editing
   useEffect(() => {
     if (customerToEdit && isOpen) {
-      const fullName = [customerToEdit.name, customerToEdit.last_name].filter(Boolean).join(' ').trim() || customerToEdit.name || ''
       setForm({
-        name: fullName,
+        name: (customerToEdit.name ?? '').trim(),
+        last_name: (customerToEdit.last_name ?? '').trim(),
         mobile: customerToEdit.phone || '',
       })
       setErrors({})
@@ -131,16 +133,28 @@ export default function AddCustomerModal({
           <div className="space-y-4">
             <div>
               <label className={labelBase}>
-                Name <span className="text-red-500">*</span>
+                First name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => update('name', e.target.value)}
-                placeholder="e.g. Sai Patil"
+                placeholder="e.g. Aishwarya"
                 className={`${inputBase} ${errors.name ? inputError : 'border-gray-300'}`}
               />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className={labelBase}>Last name</label>
+              <input
+                type="text"
+                value={form.last_name}
+                onChange={(e) => update('last_name', e.target.value)}
+                placeholder="e.g. Pharande"
+                className={`${inputBase} ${errors.last_name ? inputError : 'border-gray-300'}`}
+              />
+              {errors.last_name && <p className="mt-1 text-xs text-red-500">{errors.last_name}</p>}
             </div>
 
             <div>

@@ -829,14 +829,14 @@ video {
 .max-h-\[70vh\] {
   max-height: 70vh;
 }
+.max-h-\[80vh\] {
+  max-height: 80vh;
+}
 .max-h-\[88vh\] {
   max-height: 88vh;
 }
 .max-h-\[90vh\] {
   max-height: 90vh;
-}
-.max-h-\[80vh\] {
-  max-height: 80vh;
 }
 .min-h-0 {
   min-height: 0px;
@@ -980,6 +980,9 @@ video {
 .max-w-sm {
   max-width: 24rem;
 }
+.max-w-\[220px\] {
+  max-width: 220px;
+}
 .flex-1 {
   flex: 1 1 0%;
 }
@@ -1006,19 +1009,6 @@ video {
 }
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-@keyframes slideInRight {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-.animate-\[slideInRight_0\.25s_ease-out\] {
-  animation: slideInRight 0.25s ease-out;
 }
 @keyframes fadeIn {
   0% {
@@ -1067,14 +1057,6 @@ video {
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
 @keyframes slideInRight {
   0% {
     transform: translateX(100%);
@@ -1088,6 +1070,14 @@ video {
 .animate-slide-in-right {
   animation: slideInRight 0.25s ease-out;
 }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 .cursor-help {
   cursor: help;
 }
@@ -1099,9 +1089,6 @@ video {
 }
 .resize-none {
   resize: none;
-}
-.grid-cols-1 {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1205,6 +1192,11 @@ video {
   margin-top: calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1.25rem * var(--tw-space-y-reverse));
 }
+.space-y-1\.5 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.375rem * var(--tw-space-y-reverse));
+}
 .divide-y > :not([hidden]) ~ :not([hidden]) {
   --tw-divide-y-reverse: 0;
   border-top-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
@@ -1298,6 +1290,9 @@ video {
 }
 .border-t {
   border-top-width: 1px;
+}
+.border-l-4 {
+  border-left-width: 4px;
 }
 .border-dashed {
   border-style: dashed;
@@ -1854,6 +1849,12 @@ video {
 }
 .pt-5 {
   padding-top: 1.25rem;
+}
+.pr-1 {
+  padding-right: 0.25rem;
+}
+.pr-1\.5 {
+  padding-right: 0.375rem;
 }
 .text-left {
   text-align: left;
@@ -2848,9 +2849,6 @@ body {
   .sm\:right-2\.5 {
     right: 0.625rem;
   }
-  .sm\:col-span-2 {
-    grid-column: span 2 / span 2;
-  }
   .sm\:mb-1 {
     margin-bottom: 0.25rem;
   }
@@ -2908,8 +2906,8 @@ body {
   .sm\:min-w-0 {
     min-width: 0px;
   }
-  .sm\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .sm\:max-w-\[260px\] {
+    max-width: 260px;
   }
   .sm\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));

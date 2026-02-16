@@ -35,8 +35,6 @@ interface CartItem {
   image?: string
   modifiers?: { name: string; price: number }[]
   notes?: string
-  discount?: number
-  discountType?: 'percentage' | 'fixed'
   selectedSize?: string
 }
 
@@ -54,8 +52,6 @@ interface ProductOptionsModalProps {
     image?: string
     modifiers?: { name: string; price: number }[]
     notes?: string
-    discount?: number
-    discountType?: 'percentage' | 'fixed'
     selectedSize?: string
   }) => void
 }
@@ -69,7 +65,6 @@ export default function ProductOptionsModal({
 }: ProductOptionsModalProps) {
   const [quantity, setQuantity] = useState(1)
   const [priceInput, setPriceInput] = useState('')
-  const [discountInput, setDiscountInput] = useState('')
   const [notes, setNotes] = useState('')
 
   // Reset state when modal opens/closes or product changes
@@ -78,12 +73,10 @@ export default function ProductOptionsModal({
       if (editingCartItem) {
         setQuantity(editingCartItem.quantity)
         setPriceInput(editingCartItem.price.toFixed(2))
-        setDiscountInput(editingCartItem.discount ? `${editingCartItem.discount}%` : '')
         setNotes(editingCartItem.notes || '')
       } else {
         setQuantity(1)
         setPriceInput((product.price || 0).toFixed(2))
-        setDiscountInput('')
         setNotes('')
       }
     }
@@ -97,30 +90,14 @@ export default function ProductOptionsModal({
   }, [priceInput, product?.price])
   const fullUnitPrice = unitPrice
 
-  // Parse discount input — percentage only (0–100)
-  const parsedDiscount = useMemo(() => {
-    const trimmed = discountInput.trim().replace(/%/g, '').trim()
-    if (!trimmed) return null
-    const num = parseFloat(trimmed)
-    if (isNaN(num) || num < 0 || num > 100) return null
-    return { value: num, type: 'percentage' as const }
-  }, [discountInput])
-
   // Line total = unit price × quantity
   const lineTotal = useMemo(() => {
     return fullUnitPrice * quantity
   }, [fullUnitPrice, quantity])
 
-  const discountAmount = useMemo(() => {
-    if (!parsedDiscount) return 0
-    return (lineTotal * parsedDiscount.value) / 100
-  }, [parsedDiscount, lineTotal])
-
-  // Round to 2 decimal places for accurate calculation
-  // This recalculates automatically when quantity, modifiers, size, or discount changes
   const total = useMemo(() => {
-    return Math.round((Math.max(0, lineTotal - discountAmount)) * 100) / 100
-  }, [lineTotal, discountAmount])
+    return Math.round(lineTotal * 100) / 100
+  }, [lineTotal])
 
   const handleAddToCart = () => {
     if (!product) return
@@ -133,8 +110,6 @@ export default function ProductOptionsModal({
       image: product.image,
       modifiers: [],
       notes: notes.trim() || undefined,
-      discount: parsedDiscount?.value,
-      discountType: parsedDiscount?.type,
       selectedSize: undefined,
     }
     onAddToCart(cartItem)
@@ -223,25 +198,6 @@ export default function ProductOptionsModal({
               </button>
               <span className="ml-auto text-base font-semibold text-gray-900">₹{(unitPrice * quantity).toFixed(2)}</span>
             </div>
-          </div>
-
-          {/* Discount */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2">
-              <label className="text-sm font-semibold text-gray-700">Discount</label>
-              <span className="text-gray-400 cursor-help" title="Enter discount percentage (e.g. 10 or 10%)">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </span>
-            </div>
-            <input
-              type="text"
-              value={discountInput}
-              onChange={(e) => setDiscountInput(e.target.value)}
-              placeholder="Discount %"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-            />
           </div>
 
           {/* Preparation Notes */}

@@ -282,9 +282,8 @@ export default function KitchenOrderTicket({
           >
             {/* Header */}
             <div className="text-center mb-4">
-              <p className="text-sm text-gray-600">KOT</p>
-              <h1 className="text-2xl font-bold text-gray-800">KOT</h1>
-              <p className="text-sm text-gray-600 mt-2">Order No: <span className="font-mono font-bold">{displayOrderNumber}</span></p>
+              <h1 className="text-xl font-bold text-gray-800">KOT</h1>
+              <p className="text-sm text-gray-600 mt-1">Order No: <span className="font-mono font-bold">{displayOrderNumber}</span></p>
             </div>
 
             {/* Order Details - Area, Table, Date only */}

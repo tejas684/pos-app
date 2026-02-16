@@ -31,18 +31,6 @@ function formatOrderDateForInvoice(date: Date) {
   return `${day}/${month}/${year} ${h}:${min}`
 }
 
-function formatPrintTimestamp(date: Date) {
-  const d = new Date(date)
-  const m = d.getMonth() + 1
-  const day = d.getDate()
-  const y = String(d.getFullYear()).slice(-2)
-  const h = d.getHours()
-  const min = String(d.getMinutes()).padStart(2, '0')
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const h12 = h % 12 || 12
-  return `${m}/${day}/${y}, ${h12}:${min} ${ampm}`
-}
-
 function esc(s: string) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
@@ -63,51 +51,52 @@ export function buildInvoicePrintHtml(order: Order, currency: string = DEFAULT_C
     })
     .join('')
   const orderDate = formatOrderDateForInvoice(order.createdAt)
-  const printTime = formatPrintTimestamp(new Date())
   const area = order.area ?? '—'
   const tableNum = order.tableName ?? '—'
   const customer = esc(order.customer || '—')
   return `
-    <p class="top-date">${printTime}</p>
     <h1 class="invoice-title">INVOICE</h1>
     <p class="order-line">Order : ${esc(orderNumber)}</p>
     <p class="order-line">Area : ${esc(area)}</p>
     <p class="order-line">Table Number : ${esc(tableNum)}</p>
-    <hr class="dotted" />
+    <hr class="dashed" />
     <p class="info-line">Date: ${orderDate}</p>
     <p class="info-line">Customer: ${customer}</p>
-    <hr class="dotted" />
+    <hr class="dashed" />
     <table class="items-table">
       <thead>
         <tr><th class="cell">Item</th><th class="cell center">Qty</th><th class="cell right">Price</th><th class="cell right">Total</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="subtotal-line">Subtotal: ${currency}${subtotal.toFixed(2)}</p>
-    <hr class="dotted" />
-    <p class="charge-line">Selected Person: ${selectedPersons}</p>
-    <p class="charge-line">Total Charge: ${currency}${charge.toFixed(2)}</p>
-    <p class="grand-total">GRAND TOTAL: ${currency}${order.total.toFixed(2)}</p>
-    <hr class="dotted" />
+    <hr class="dashed" />
+    <p class="subtotal-row"><span>Subtotal:</span><span class="amt">${currency}${subtotal.toFixed(2)}</span></p>
+    <hr class="dashed" />
+    <p class="summary-row"><span>Selected Person:</span><span class="amt">${selectedPersons}</span></p>
+    <p class="summary-row"><span>Total Charge:</span><span class="amt">${currency}${charge.toFixed(2)}</span></p>
+    <p class="grand-total-row"><span>GRAND TOTAL:</span><span class="amt">${currency}${order.total.toFixed(2)}</span></p>
+    <hr class="dashed" />
     <p class="footer-msg">Thank you! Visit Again</p>
   `
 }
 
 const PRINT_STYLES = `
-  body { font-family: system-ui, sans-serif; font-size: 14px; padding: 24px; color: #111; max-width: 400px; margin: 0 auto; }
-  .top-date { margin: 0 0 12px 0; font-size: 13px; color: #444; }
-  .invoice-title { text-align: center; font-size: 22px; font-weight: bold; margin: 0 0 8px 0; }
+  @page { size: auto; margin: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; font-size: 14px; padding: 24px; color: #111; max-width: 400px; margin: 0 auto; line-height: 1.5; }
+  .invoice-title { text-align: center; font-size: 20px; font-weight: bold; margin: 0 0 10px 0; }
   .order-line { margin: 2px 0; font-size: 14px; }
   .info-line { margin: 2px 0; font-size: 14px; }
-  .dotted { border: none; border-top: 1px dotted #999; margin: 10px 0; }
-  .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
-  .items-table th, .items-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #ddd; }
+  .dashed { border: none; border-top: 1px dashed #999; margin: 10px 0; }
+  .items-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 14px; }
+  .items-table th, .items-table td { padding: 6px 8px; text-align: left; }
+  .items-table thead th { font-weight: bold; }
   .cell { padding: 6px 8px; }
   .center { text-align: center; }
   .right { text-align: right; }
-  .subtotal-line { text-align: right; margin: 8px 0 0 0; font-size: 14px; }
-  .charge-line { margin: 2px 0; font-size: 14px; }
-  .grand-total { font-weight: bold; font-size: 15px; margin: 6px 0 0 0; }
+  .subtotal-row, .summary-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 14px; }
+  .subtotal-row .amt, .summary-row .amt { text-align: right; }
+  .grand-total-row { display: flex; justify-content: space-between; margin: 8px 0 0 0; font-size: 14px; font-weight: bold; }
+  .grand-total-row .amt { text-align: right; font-weight: bold; }
   .footer-msg { text-align: center; margin: 14px 0 0 0; font-size: 14px; }
 `
 
@@ -132,7 +121,7 @@ export function printInvoice(order: Order, currency: string = DEFAULT_CURRENCY):
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Invoice - ${orderNumber}</title>
+        <title> </title>
         <style>${PRINT_STYLES}</style>
       </head>
       <body>${content}</body>

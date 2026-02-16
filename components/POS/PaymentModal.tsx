@@ -592,23 +592,20 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
 
         <div className="flex-1 overflow-y-auto p-4">
           <div ref={printRef} className="invoice-print-content bg-white text-gray-900">
-            <div className="text-right text-sm text-gray-500 mb-2">
-              {cartCreatedAt.toLocaleString()}
-            </div>
-            <div className="text-center mb-4">
-              <h1 className="text-2xl font-bold">INVOICE</h1>
-              <p className="text-sm text-gray-600 mt-1">Order #: {cartOrderNumber}</p>
-            </div>
-            <div className="space-y-1 text-sm mb-4">
-              <p><span className="text-gray-600">Date:</span> {formatDateTime(cartCreatedAt)}</p>
-              <p><span className="text-gray-600">Customer:</span> {customerName}</p>
+            <header className="text-center mb-4">
+              <h1 className="text-xl font-bold text-gray-900">INVOICE</h1>
+              <p className="text-sm text-gray-500 mt-1">Order No. {cartOrderNumber}</p>
+            </header>
+            <div className="space-y-1.5 text-sm mb-4">
+              <div className="flex justify-between"><span className="text-gray-500">Date</span><span className="font-medium">{formatDateTime(cartCreatedAt)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Customer</span><span className="font-medium">{customerName}</span></div>
               {tableName != null && tableName !== '' && (
-                <p><span className="text-gray-600">Table:</span> {tableName}</p>
+                <div className="flex justify-between"><span className="text-gray-500">Table</span><span className="font-medium">{tableName}</span></div>
               )}
               {waiterName != null && waiterName !== '' && (
-                <p><span className="text-gray-600">Waiter:</span> {waiterName}</p>
+                <div className="flex justify-between"><span className="text-gray-500">Waiter</span><span className="font-medium">{waiterName}</span></div>
               )}
-              <p><span className="text-gray-600">Order type:</span> {orderTypeLabel}</p>
+              <div className="flex justify-between"><span className="text-gray-500">Order type</span><span className="font-medium">{orderTypeLabel}</span></div>
             </div>
 
             <div className="border-t border-b border-dashed border-gray-300 my-4" />

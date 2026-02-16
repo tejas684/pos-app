@@ -66,9 +66,13 @@ export interface Toast {
  * 
  * Defines the context value provided by ToastProvider:
  * - showToast: Function to display a new toast notification
+ * - toasts: Array of active toasts (for rendering in header or custom slot)
+ * - removeToast: Remove a toast by id
  */
-interface ToastContextType {
+export interface ToastContextType {
   showToast: (message: string, type?: ToastType, duration?: number) => void
+  toasts: Toast[]
+  removeToast: (id: string) => void
 }
 
 /**
@@ -143,34 +147,53 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, toasts, removeToast }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none">
-        <div className="flex flex-col gap-3 pointer-events-auto">
-          {toasts.map((toast) => (
-            <div
-              key={toast.id}
-              className={`min-w-[300px] max-w-md pl-4 pr-3 py-3 rounded-xl flex items-center justify-between gap-4 animate-slide-in-right ${toastStyles[toast.type]}`}
-              style={{
-                borderLeftWidth: '4px',
-                borderLeftColor: 'var(--toast-accent)',
-              }}
-            >
-              <p className="flex-1 text-sm font-medium">{toast.message}</p>
-              <button
-                onClick={() => removeToast(toast.id)}
-                className="p-1 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0"
-                aria-label="Close toast"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
     </ToastContext.Provider>
+  )
+}
+
+/**
+ * Renders the list of toasts. Use inside a component that has access to useToast (e.g. POSHeader).
+ * Pass compact=true for header-inline styling.
+ */
+const toastStylesMap: Record<ToastType, string> = {
+  success:
+    'bg-white border border-success-200 shadow-medium text-success-800 [--toast-accent:theme(colors.success.500)]',
+  error:
+    'bg-white border border-danger-200 shadow-medium text-danger-800 [--toast-accent:theme(colors.danger.500)]',
+  warning:
+    'bg-white border border-warning-200 shadow-medium text-warning-800 [--toast-accent:theme(colors.warning.500)]',
+  info:
+    'bg-white border border-primary-200 shadow-medium text-primary-800 [--toast-accent:theme(colors.primary.500)]',
+}
+
+export function ToastList({ compact = false }: { compact?: boolean }) {
+  const { toasts, removeToast } = useToast()
+  if (toasts.length === 0) return null
+  return (
+    <div className={compact ? 'flex flex-wrap items-center gap-1.5' : 'flex flex-col gap-3'}>
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className={`flex items-center justify-between gap-2 rounded-xl border-l-4 animate-slide-in-right ${toastStylesMap[toast.type]} ${compact ? 'min-w-0 max-w-[220px] sm:max-w-[260px] pl-2 pr-1.5 py-1.5' : 'min-w-[300px] max-w-md pl-4 pr-3 py-3'}`}
+          style={{ borderLeftColor: 'var(--toast-accent)' }}
+        >
+          <p className={compact ? 'flex-1 text-xs font-medium truncate' : 'flex-1 text-sm font-medium'}>
+            {toast.message}
+          </p>
+          <button
+            onClick={() => removeToast(toast.id)}
+            className="p-1 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/5 transition-colors shrink-0"
+            aria-label="Close toast"
+          >
+            <svg className={compact ? 'w-4 h-4' : 'w-5 h-5'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ))}
+    </div>
   )
 }
 

@@ -25,6 +25,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { ToastList } from '@/components/ui/Toast'
 
 /**
  * QuickStats Interface
@@ -127,6 +128,9 @@ export default function POSHeader({
         </svg>
         <span className="hidden md:inline">Customer</span>
       </button>
+      <div className="hidden sm:flex items-center shrink-0">
+        <ToastList compact />
+      </div>
       <div className="flex-1"></div>
       <button
         onClick={handleLogout}

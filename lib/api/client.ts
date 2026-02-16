@@ -59,7 +59,19 @@ export async function apiRequest<T>(
     options.body = JSON.stringify(body)
   }
 
-  const res = await fetch(url, options)
+  let res: Response
+  try {
+    res = await fetch(url, options)
+  } catch (networkError) {
+    const msg =
+      networkError instanceof TypeError && networkError.message === 'Failed to fetch'
+        ? 'Cannot reach server. Check your connection and try again.'
+        : networkError instanceof Error
+          ? networkError.message
+          : 'Network error. Please try again.'
+    throw new ApiError(msg, 0, { networkError: true })
+  }
+
   const contentType = res.headers.get('content-type') ?? ''
   const text = await res.text().catch(() => '')
 
@@ -75,7 +87,7 @@ export async function apiRequest<T>(
   if (!res.ok) {
     let message = res.statusText || 'Request failed'
     if (res.status >= 500) {
-      message = 'Server error. Please try again or contact support.'
+      message = 'Server temporarily unavailable. Please try again in a moment or contact support.'
     }
     if (data && typeof data === 'object') {
       if (typeof (data as Record<string, unknown>).message === 'string' && (data as Record<string, unknown>).message) {

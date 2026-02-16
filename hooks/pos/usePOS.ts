@@ -2,7 +2,7 @@
  * Main POS hook – composes cart, orders, modals, and order/payment flows.
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '@/components/ui/Toast'
 import type { OrderType, Order, OrderPayment } from '@/types/pos'
 import type { CartItem } from '@/types/pos'
@@ -19,14 +19,21 @@ import {
 } from '@/lib/api/pos'
 import { usePOSCart, type AddToCartPayload, type ProductForCustomization } from './usePOSCart'
 import { usePOSOrders } from './usePOSOrders'
+import { usePOSData } from '@/contexts/POSDataContext'
+import { findWalkInCustomerFromApi } from '@/lib/pos/orderValidation'
 import { TAX_RATE, CHARGE_PER_PERSON } from './constants'
 import { round2, computeSubtotal, computeDiscountAmount, computeTotalPayable } from './calculations'
 
+const DEFAULT_CUSTOMER_LABEL = 'Walk-in Customer'
+
 export function usePOS() {
   const { showToast } = useToast()
+  const { customers } = usePOSData()
   const ordersApi = usePOSOrders()
   const { orders, setOrders, tables, setOrdersFromApi, isMounted } = ordersApi
   const cart = usePOSCart(showToast)
+  const defaultCustomerRef = useRef<string>(DEFAULT_CUSTOMER_LABEL)
+  const hasSetDefaultCustomerRef = useRef(false)
   const {
     cartItems,
     setCartItems,
@@ -46,7 +53,7 @@ export function usePOS() {
 
   const [orderType, setOrderType] = useState<OrderType>('dine-in')
   const [selectedTable, setSelectedTable] = useState<string>('')
-  const [customer, setCustomer] = useState('Walk-in Customer')
+  const [customer, setCustomer] = useState(DEFAULT_CUSTOMER_LABEL)
   const [waiter, setWaiter] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showDiscountModal, setShowDiscountModal] = useState(false)
@@ -79,9 +86,20 @@ export function usePOS() {
     setDiscount(0)
     setTips(0)
     setOrderBeingModified(null)
-    setCustomer('Walk-in Customer')
+    setCustomer(defaultCustomerRef.current)
     setWaiter('')
   }, [clearCartItems])
+
+  // Set default customer from fetch customers API (Walk-in when present)
+  useEffect(() => {
+    if (customers.length === 0 || hasSetDefaultCustomerRef.current) return
+    hasSetDefaultCustomerRef.current = true
+    const walkIn = findWalkInCustomerFromApi(customers)
+    if (walkIn) {
+      defaultCustomerRef.current = walkIn.displayName
+      setCustomer(walkIn.displayName)
+    }
+  }, [customers])
 
   const handleProductSelect = useCallback(
     (product: ProductForCustomization) => {

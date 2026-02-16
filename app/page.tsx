@@ -206,7 +206,7 @@ export default function POSPage() {
   }
 
   const handleCustomerSubmit = async (data: AddCustomerFormData) => {
-    const displayName = data.name.trim()
+    const displayName = [data.name.trim(), data.last_name?.trim()].filter(Boolean).join(' ').trim() || data.name.trim()
     if (!data.name?.trim() || !data.mobile?.trim()) {
       setShowCustomerModal(false)
       pageState.setCustomerToEdit(null)
@@ -216,12 +216,13 @@ export default function POSPage() {
       try {
         await updateStoreCustomer(pageState.customerToEdit.id, {
           name: data.name.trim(),
+          last_name: data.last_name?.trim(),
           mobile: data.mobile.trim(),
         })
         pageState.setNewlyAddedCustomers((prev) =>
           prev.map((c) =>
             c.id === pageState.customerToEdit?.id || c.phone === pageState.customerToEdit?.phone
-              ? { ...c, name: data.name.trim(), phone: data.mobile.trim() }
+              ? { ...c, name: data.name.trim(), last_name: data.last_name?.trim() ?? '', phone: data.mobile.trim() }
               : c
           )
         )
@@ -240,6 +241,7 @@ export default function POSPage() {
       try {
         const res = await createStoreCustomer({
           name: data.name.trim(),
+          last_name: data.last_name?.trim(),
           mobile: data.mobile.trim(),
         })
         const rawData = (res?.data ?? res) as Record<string, unknown> | undefined
@@ -251,9 +253,13 @@ export default function POSPage() {
         const respName = String(
           customerObj?.name ?? customerObj?.first_name ?? customerObj?.firstName ?? ''
         ).trim()
+        const respLastName = String(
+          customerObj?.last_name ?? (customerObj?.lastName as string) ?? ''
+        ).trim()
         const newCustomer: CustomerToEdit = {
           id,
           name: data.name.trim() || respName,
+          last_name: data.last_name?.trim() || respLastName || undefined,
           phone: data.mobile.trim() || String(customerObj?.mobile ?? customerObj?.phone ?? ''),
         }
         pageState.setNewlyAddedCustomers((prev) => {

@@ -279,9 +279,10 @@ export async function fetchCustomers(): Promise<ApiCustomer[]> {
   }
 }
 
-/** Request body for adding a store customer – only name and mobile */
+/** Request body for adding a store customer – name, last_name, mobile (POST api/store/customers) */
 export interface CreateStoreCustomerRequest {
   name: string
+  last_name?: string
   mobile: string
 }
 
@@ -292,13 +293,16 @@ export interface CreateStoreCustomerResponse {
   [key: string]: unknown
 }
 
-/** Add a customer via store API. POST api/store/customers with { name, mobile }. */
+/** Add a customer via store API. POST api/store/customers with { name, last_name, mobile }. */
 export async function createStoreCustomer(
   body: CreateStoreCustomerRequest
 ): Promise<CreateStoreCustomerResponse> {
-  const requestBody = {
+  const requestBody: { name: string; last_name?: string; mobile: string } = {
     name: body.name.trim(),
     mobile: body.mobile.trim(),
+  }
+  if (body.last_name != null && String(body.last_name).trim() !== '') {
+    requestBody.last_name = String(body.last_name).trim()
   }
   return apiPost<CreateStoreCustomerResponse>('api/store/customers', requestBody)
 }
@@ -310,13 +314,16 @@ export interface UpdateStoreCustomerResponse {
   [key: string]: unknown
 }
 
-/** Update a customer via store API. PUT api/update/customers/:id with { name, mobile }. */
+/** Update a customer via store API. PUT api/update/customers/:id with { name, last_name, mobile }. */
 export async function updateStoreCustomer(
   customerId: string,
   body: CreateStoreCustomerRequest
 ): Promise<UpdateStoreCustomerResponse> {
   const requestBody = {
     name: body.name.trim(),
+    last_name: (body.last_name != null && String(body.last_name).trim() !== '')
+      ? String(body.last_name).trim()
+      : '',
     mobile: body.mobile.trim(),
   }
   return apiPut<UpdateStoreCustomerResponse>(`api/update/customers/${encodeURIComponent(customerId)}`, requestBody)
