@@ -14,7 +14,7 @@
  * 1. Multiple Toast Types: success, error, warning, info
  * 2. Auto-dismiss: Toasts automatically disappear after duration
  * 3. Manual Dismiss: Users can close toasts manually
- * 4. Stacking: Multiple toasts can be displayed simultaneously
+ * 4. Single toast: New toast replaces the previous one so the latest action is always shown
  * 5. Animations: Slide-in animations for better UX
  * 
  * Usage Example:
@@ -107,14 +107,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
    * 
    * @param message - Text to display in the toast
    * @param type - Toast type (default: 'info')
-   * @param duration - Auto-dismiss time in ms (default: 3000ms, 0 = no auto-dismiss)
+   * @param duration - Auto-dismiss time in ms (default: 2500ms, 0 = no auto-dismiss)
    */
-  const showToast = (message: string, type: ToastType = 'info', duration = 3000) => {
+  const showToast = (message: string, type: ToastType = 'info', duration = 2500) => {
     // Generate unique ID for the toast
     const id = Math.random().toString(36).substring(7)
-    
-    // Add new toast to the array
-    setToasts((prev) => [...prev, { id, message, type, duration }])
+
+    // Replace previous toasts so the latest notification shows immediately when clicking another button
+    setToasts([{ id, message, type, duration }])
 
     // Set up auto-dismiss timer if duration > 0
     if (duration > 0) {

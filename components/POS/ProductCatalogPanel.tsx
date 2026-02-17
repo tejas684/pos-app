@@ -240,9 +240,9 @@ export default function ProductCatalogPanel({
           </nav>
         </aside>
 
-        {/* Product grid - Full width on mobile, with sidebar on desktop */}
+        {/* Product grid - Full width on mobile, with sidebar on desktop. Scrollable so all categories/products are visible. */}
         <div 
-          className="flex-1 overflow-y-auto min-w-0 overscroll-contain" 
+          className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 overscroll-contain min-h-0" 
           data-product-container
           style={{ WebkitOverflowScrolling: 'touch' }}
         >

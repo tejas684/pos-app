@@ -54,20 +54,35 @@ export default function TablesModal({
     })
   }, [tables, selectedArea])
 
-  // When modal opens or selectedTable changes, pre-fill selected tables
+  // When modal opens or selectedTable changes, pre-fill selected tables and sync selectedArea
   useEffect(() => {
     if (!isOpen) return
-    setSelectedArea(areas[0] ?? 'Garden')
     setNumberOfPersons(String(initialNumberOfPersons || ''))
     if (!selectedTable.trim()) {
+      setSelectedArea(areas[0] ?? 'Garden')
       setSelectedTableIds([])
       return
     }
-    const names = selectedTable.split(',').map((s) => s.trim()).filter(Boolean)
-    const ids = tables
-      .filter((t) => names.some((n) => n === t.name || n.toLowerCase() === t.name.toLowerCase()))
-      .map((t) => t.id)
+    // Match table names (support "Table 1" or "Garden – Table 1" format)
+    const names = selectedTable
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((n) => {
+        const parts = n.split(/[–-]/)
+        return parts.length > 1 ? parts[1]?.trim() || n : n
+      })
+    const matchedTables = tables.filter((t) =>
+      names.some((n) => n === t.name || n.toLowerCase() === t.name.toLowerCase())
+    )
+    const ids = matchedTables.map((t) => t.id)
     setSelectedTableIds(ids)
+    // Show the area of the selected table so it's visible when reopening
+    if (matchedTables.length > 0 && matchedTables[0].area && areas.includes(matchedTables[0].area)) {
+      setSelectedArea(matchedTables[0].area)
+    } else {
+      setSelectedArea(areas[0] ?? 'Garden')
+    }
   }, [isOpen, selectedTable, tables, areas, initialNumberOfPersons])
 
   const selectedTables = useMemo(

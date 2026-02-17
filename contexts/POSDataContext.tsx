@@ -94,6 +94,8 @@ function mapApiOrderToOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): Ord
   const raw = api as Record<string, unknown>
   const customerId = raw.customer_id != null ? Number(raw.customer_id) : raw.customerId != null ? Number(raw.customerId) : undefined
   const waiterId = raw.waiter_id != null ? Number(raw.waiter_id) : raw.waiterId != null ? Number(raw.waiterId) : undefined
+  const areaVal = raw.areas ?? raw.area
+  const area = typeof areaVal === 'string' && areaVal.trim() !== '' ? String(areaVal).trim() : undefined
   return {
     id: String(api.id),
     orderNumber: api.order_no != null ? String(api.order_no) : undefined,
@@ -113,6 +115,7 @@ function mapApiOrderToOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): Ord
     customerId: customerId != null && !Number.isNaN(customerId) ? customerId : undefined,
     waiterId: waiterId != null && !Number.isNaN(waiterId) ? waiterId : undefined,
     payment: api.payment as Order['payment'] | undefined,
+    ...(area && { area }),
   }
 }
 

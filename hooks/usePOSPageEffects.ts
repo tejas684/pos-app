@@ -19,8 +19,8 @@ export interface UsePOSPageEffectsArgs {
   setOrdersFromApi: (orders: Order[]) => void
   setNewlyAddedCustomers: React.Dispatch<React.SetStateAction<CustomerToEdit[]>>
   setShowExecutionOrders: (value: boolean | ((prev: boolean) => boolean)) => void
-  setMobileActivePanel: (value: 'products' | 'orders' | 'execution' | 'dashboard' | ((prev: 'products' | 'orders' | 'execution' | 'dashboard') => 'products' | 'orders' | 'execution' | 'dashboard')) => void
-  mobileActivePanel: 'products' | 'orders' | 'execution' | 'dashboard'
+  setMobileActivePanel: (value: 'products' | 'orders' | 'execution' | ((prev: 'products' | 'orders' | 'execution') => 'products' | 'orders' | 'execution')) => void
+  mobileActivePanel: 'products' | 'orders' | 'execution'
 }
 
 /**
@@ -75,7 +75,7 @@ export function usePOSPageEffects({
           setShowExecutionOrders(true)
           setMobileActivePanel('products')
         } else {
-          setMobileActivePanel((prev) => (prev === 'dashboard' ? 'products' : prev))
+          setMobileActivePanel((prev) => prev)
         }
       })
     }

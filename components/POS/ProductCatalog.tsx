@@ -240,7 +240,7 @@ function ProductCard({
       tabIndex={0}
       role="button"
       aria-label={`Add ${product.name} to cart - Price: ${price}`}
-      className="group h-full flex flex-col bg-white rounded-lg overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-md hover:border-primary-300/60 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 touch-manipulation min-w-0"
+      className="group h-full flex flex-col bg-gradient-to-br from-white to-primary-50/40 rounded-xl overflow-hidden border border-slate-200/90 shadow-md hover:shadow-xl hover:border-primary-300 hover:from-primary-50/60 hover:to-primary-100/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-300 touch-manipulation min-w-0"
     >
       {/* Content: name + price - compact for 100% zoom; 3-col grid, smaller cards */}
       <div className="flex flex-col flex-1 p-2 min-w-0">

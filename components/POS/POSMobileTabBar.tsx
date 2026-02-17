@@ -1,13 +1,13 @@
 'use client'
 
 /**
- * Mobile tab bar for POS: Dashboard, Orders (execution), Cart, Products.
+ * Mobile tab bar for POS: Orders (execution), Cart, Products.
  * Only visible below md (768px); hidden on desktop.
  */
 
 export interface POSMobileTabBarProps {
-  activePanel: 'products' | 'orders' | 'execution' | 'dashboard'
-  onSelectPanel: (panel: 'products' | 'orders' | 'execution' | 'dashboard') => void
+  activePanel: 'products' | 'orders' | 'execution'
+  onSelectPanel: (panel: 'products' | 'orders' | 'execution') => void
   activeOrdersCount: number
   cartItemsCount: number
 }
@@ -18,7 +18,7 @@ export default function POSMobileTabBar({
   activeOrdersCount,
   cartItemsCount,
 }: POSMobileTabBarProps) {
-  const tab = (panel: 'products' | 'orders' | 'execution' | 'dashboard', label: string, icon: React.ReactNode, badge?: number) => {
+  const tab = (panel: 'products' | 'orders' | 'execution', label: string, icon: React.ReactNode, badge?: number) => {
     const isActive = activePanel === panel
     return (
       <button
@@ -51,15 +51,6 @@ export default function POSMobileTabBar({
   return (
     <div className="flex-shrink-0 w-full min-w-0 bg-white border-b border-neutral-200 shadow-md z-30 flex flex-col md:hidden">
       <div className="flex items-center justify-around px-2 py-3 gap-1 w-full">
-        {tab(
-          'dashboard',
-          'Dashboard',
-          (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          )
-        )}
         {tab(
           'execution',
           'Orders',

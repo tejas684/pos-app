@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import ExecutionOrdersSidebar from '@/components/POS/ExecutionOrdersSidebar'
 import OrderManagementPanel from '@/components/POS/OrderManagementPanel'
-import POSMobileDashboard, { type QuickStats } from '@/components/POS/POSMobileDashboard'
+import { type QuickStats } from '@/components/POS/POSMobileDashboard'
 import ProductCatalogPanel from '@/components/POS/ProductCatalogPanel'
 import { fetchOrderDetails } from '@/lib/api/pos'
 import type { Order } from '@/types/pos'
@@ -188,14 +188,8 @@ export default function POSMainContent({
 
       {/* Cart + Product catalog — cart gets more width at 100% zoom, catalog to the right */}
       <div className="flex-1 flex flex-col md:flex-row min-h-0 min-w-0 gap-0">
-        <div className={`flex flex-col h-full min-w-0 md:!flex md:flex-[1_1_58%] md:min-w-[380px] md:max-w-[62%] md:shrink-0 relative bg-white border-r border-neutral-200 shadow-soft overflow-hidden ${mobileActivePanel === 'orders' || mobileActivePanel === 'dashboard' ? 'block' : 'hidden'}`}>
-          {mobileActivePanel === 'dashboard' ? (
-            <POSMobileDashboard
-              quickStats={quickStats}
-              onViewCart={() => setMobileActivePanel('orders')}
-            />
-          ) : (
-            <OrderManagementPanel
+        <div className={`flex flex-col h-full min-w-0 md:!flex md:flex-[1_1_58%] md:min-w-[380px] md:max-w-[62%] md:shrink-0 relative bg-white border-r border-neutral-200 shadow-soft overflow-hidden ${mobileActivePanel === 'orders' ? 'block' : 'hidden'}`}>
+          <OrderManagementPanel
               orderType={orderType}
               setOrderType={setOrderType}
               selectedTable={selectedTable}
@@ -286,10 +280,9 @@ export default function POSMainContent({
                 }
               }}
             />
-          )}
         </div>
 
-        <div className={`flex flex-col min-w-0 flex-1 md:!flex md:flex-[0_1_42%] md:min-w-[280px] md:overflow-hidden md:min-h-0 ${mobileActivePanel === 'products' ? 'block' : 'hidden'}`}>
+        <div className={`flex flex-col min-w-0 flex-1 min-h-0 overflow-hidden md:!flex md:flex-[0_1_42%] md:min-w-[280px] md:overflow-hidden ${mobileActivePanel === 'products' ? 'flex' : 'hidden'}`}>
           <ProductCatalogPanel
             onAddToCart={(product) => addToCart(product)}
             onProductSelect={handleProductSelect}

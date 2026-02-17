@@ -123,15 +123,12 @@ export default function OrderManagementPanel({
 
   const handleEditItem = (item: CartItem) => {
     if (onEditItemWithProductModal) {
-      // Reconstruct product from cart item
-      // Default sizes - will be used if product doesn't have sizes
       const defaultSizes = [
         { id: 'default', name: 'Default', price: item.price },
         { id: 'medium', name: 'Medium', price: 180 },
         { id: 'large', name: 'Large', price: 220 },
         { id: 'xlarge', name: 'Extra Large', price: 260 },
       ]
-      
       const product: Product = {
         id: item.id,
         name: item.name,
@@ -150,9 +147,9 @@ export default function OrderManagementPanel({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white border-r border-neutral-200 shadow-soft min-w-0 w-full md:w-full overflow-hidden relative z-10 md:overflow-x-hidden">
+    <div className="flex-1 flex flex-col h-full bg-gradient-to-b from-white to-neutral-50/80 border-l border-primary-200/60 shadow-soft min-w-0 w-full md:w-full overflow-hidden relative z-10 md:overflow-x-hidden">
       {/* Order Type Tabs - always visible */}
-      <div className="flex-shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 border-b border-neutral-200 bg-neutral-50/50 flex items-center gap-1.5 flex-wrap overflow-x-auto scrollbar-hide">
+      <div className="flex-shrink-0 px-2 sm:px-4 py-1.5 sm:py-2 border-b border-primary-100 bg-primary-50/40 flex items-center gap-1.5 flex-wrap overflow-x-auto scrollbar-hide">
         <button
           onClick={() => {
             setOrderType('dine-in')
@@ -160,8 +157,8 @@ export default function OrderManagementPanel({
           }}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'dine-in'
-              ? 'bg-primary-500 text-white shadow-md'
-              : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
+              ? 'bg-primary-500 text-white shadow-md ring-1 ring-primary-600/20'
+              : 'bg-white/80 text-neutral-600 hover:bg-primary-100/80 hover:text-primary-700 border border-neutral-200/80'
           }`}
         >
           Dine in
@@ -173,8 +170,8 @@ export default function OrderManagementPanel({
           }}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'take-away'
-              ? 'bg-primary-500 text-white shadow-md'
-              : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
+              ? 'bg-primary-500 text-white shadow-md ring-1 ring-primary-600/20'
+              : 'bg-white/80 text-neutral-600 hover:bg-primary-100/80 hover:text-primary-700 border border-neutral-200/80'
           }`}
         >
           Takeaway
@@ -186,8 +183,8 @@ export default function OrderManagementPanel({
           }}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 ${
             orderType === 'delivery'
-              ? 'bg-primary-500 text-white shadow-md'
-              : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
+              ? 'bg-primary-500 text-white shadow-md ring-1 ring-primary-600/20'
+              : 'bg-white/80 text-neutral-600 hover:bg-primary-100/80 hover:text-primary-700 border border-neutral-200/80'
           }`}
         >
           Delivery
@@ -197,8 +194,8 @@ export default function OrderManagementPanel({
             onClick={onShowTableModal}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 min-h-[32px] sm:min-h-0 touch-manipulation shrink-0 relative ${
               selectedTable
-                ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600 hover:shadow-lg animate-live-glow'
-                : 'bg-transparent text-neutral-600 hover:bg-neutral-200 active:bg-neutral-300 hover:text-neutral-800'
+                ? 'bg-primary-500 text-white shadow-md hover:bg-primary-600 hover:shadow-lg ring-1 ring-primary-600/20 animate-live-glow'
+                : 'bg-white/80 text-neutral-600 hover:bg-primary-100/80 hover:text-primary-700 border border-neutral-200/80'
             }`}
             title={selectedTable ? `${tableDisplayForCart || selectedTable} – click to change` : 'Select table for this order'}
           >

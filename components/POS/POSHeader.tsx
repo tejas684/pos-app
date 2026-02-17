@@ -75,7 +75,7 @@ export default function POSHeader({
   onShowCustomerModal,
 }: POSHeaderProps) {
   const router = useRouter()
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
 
   const handleLogout = async () => {
     await logout()
@@ -134,13 +134,13 @@ export default function POSHeader({
       <div className="flex-1"></div>
       <button
         onClick={handleLogout}
-        className="px-2 sm:px-2.5 py-1.5 bg-neutral-600 text-white rounded-lg font-semibold hover:bg-neutral-700 active:bg-neutral-800 transition-all shadow-sm border border-neutral-500 shrink-0 min-h-[34px] sm:min-h-0 text-xs"
+        className="px-3 sm:px-4 py-1.5 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl font-semibold hover:from-slate-700 hover:to-slate-800 active:scale-[0.98] transition-all shadow-md hover:shadow-lg shrink-0 min-h-[34px] sm:min-h-0 text-xs flex items-center gap-2"
         title="Logout"
       >
-        <span className="hidden sm:inline">{user?.name || user?.email || 'Logout'}</span>
-        <svg className="w-4 h-4 sm:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
+        <span>Logout</span>
       </button>
     </header>
   )

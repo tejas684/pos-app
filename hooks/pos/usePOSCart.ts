@@ -73,7 +73,6 @@ export function usePOSCart(showToast: (message: string, type: 'success' | 'error
 
   const requiresCustomization = useCallback((_product: ProductForCustomization) => true, [])
 
-
   const updateCartItem = useCallback((lineItemId: string, quantity: number) => {
     if (isNaN(quantity) || quantity <= 0) {
       setCartItems((prev) => prev.filter((item) => item.lineItemId !== lineItemId))

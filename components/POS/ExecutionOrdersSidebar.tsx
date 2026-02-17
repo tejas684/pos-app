@@ -1,36 +1,24 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { Order, Table } from '@/types/pos'
 
-type AreaTab = 'garden' | 'hall'
-
-// Garden: emerald green (#33CC66) theme
+// Garden: vibrant green – high visibility, outdoor
 const GARDEN_THEME = {
-  tabUnselected:
-    'bg-white/80 border-garden-200 text-garden-800 hover:bg-garden-50 hover:border-garden-300',
-  tabSelected:
-    'bg-garden-500 text-black border-garden-500 shadow-lg shadow-garden-500/30 ring-2 ring-garden-400/50',
   tileUnselected:
-    'bg-garden-50 border-garden-200 text-garden-800 hover:bg-garden-100 hover:border-garden-300 hover:shadow-md',
+    'bg-green-200 border-2 border-green-600 text-black font-bold shadow-md hover:bg-green-300 hover:border-green-700 hover:shadow-lg active:scale-[0.98] transition-all duration-200',
   tileSelected:
-    'bg-garden-500 text-black border-garden-500 shadow-lg shadow-garden-500/25 ring-2 ring-garden-400/40',
-  panelBg: 'bg-gradient-to-b from-garden-50/80 to-white',
-  emptyText: 'text-garden-700/90',
+    'bg-green-600 text-white border-2 border-green-800 shadow-lg shadow-green-500/40 ring-2 ring-green-400 font-bold',
+  emptyBox: 'bg-green-100 border-2 border-green-400 text-green-900 font-medium',
 }
 
-// Hall: warm amber/terracotta theme
+// Hall: vibrant amber – high visibility, indoor
 const HALL_THEME = {
-  tabUnselected:
-    'bg-white/80 border-amber-200 text-amber-900 hover:bg-amber-50 hover:border-amber-300',
-  tabSelected:
-    'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400/50',
   tileUnselected:
-    'bg-amber-50/90 border-amber-200 text-amber-900 hover:bg-amber-100 hover:border-amber-400 hover:shadow-md',
+    'bg-amber-200 border-2 border-amber-600 text-black font-bold shadow-md hover:bg-amber-300 hover:border-amber-700 hover:shadow-lg active:scale-[0.98] transition-all duration-200',
   tileSelected:
-    'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-500/25 ring-2 ring-amber-400/40',
-  panelBg: 'bg-gradient-to-b from-amber-50/50 to-white',
-  emptyText: 'text-amber-800/80',
+    'bg-amber-600 text-white border-2 border-amber-800 shadow-lg shadow-amber-500/40 ring-2 ring-amber-400 font-bold',
+  emptyBox: 'bg-amber-100 border-2 border-amber-400 text-amber-900 font-medium',
 }
 
 const GardenIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
@@ -74,8 +62,20 @@ function getTableDisplayLabel(key: string): string {
   return key
 }
 
-/** Resolve area for an order using tables (match by table id/name). */
+/** Split for display: "Table" + number side by side */
+function getTableDisplayParts(key: string): { label: string; number: string } {
+  const full = getTableDisplayLabel(key)
+  if (full === 'No table') return { label: 'No table', number: '' }
+  const match = full.match(/^Table (.+)$/)
+  if (match) return { label: 'Table', number: match[1] }
+  return { label: full, number: '' }
+}
+
+/** Resolve area for an order using tables (match by table id/name) or order.area from API. */
 function getAreaForOrder(order: Order, tables: Table[]): string {
+  if (tables.length === 0) {
+    return order.area?.trim() || 'Hall'
+  }
   const key = getOrderTableKey(order)
   const table = tables.find((t) => {
     if (t.name && key && (t.name === key || t.name.toLowerCase() === key.toLowerCase())) return true
@@ -85,7 +85,7 @@ function getAreaForOrder(order: Order, tables: Table[]): string {
     if (keyNum && tNum && keyNum === tNum) return true
     return false
   })
-  return table?.area ?? 'Hall'
+  return table?.area ?? order.area?.trim() ?? 'Hall'
 }
 
 /** Get the most recent running order for a table (by createdAt). */
@@ -109,37 +109,30 @@ export default function ExecutionOrdersSidebar({
   onLoadOrderIntoCart,
   loadingOrderIntoCartId = null,
 }: ExecutionOrdersSidebarProps) {
-  const [activeArea, setActiveArea] = useState<AreaTab>('garden')
-
   // Get running orders (exclude completed and cancelled)
   const runningOrders = useMemo(() => {
     return orders.filter(order => order.status !== 'completed' && order.status !== 'cancelled')
   }, [orders])
 
-  // Tiles grouped by area: Garden and Hall separately
+  // Tiles grouped by area: Garden and Hall separately (both shown directly)
   const { gardenTiles, hallTiles } = useMemo(() => {
     const byKey = new Map<string, string>() // key -> area
     for (const order of runningOrders) {
       const key = getOrderTableKey(order)
       if (!byKey.has(key)) {
-        const area = tables.length > 0 ? getAreaForOrder(order, tables) : '—'
+        const area = getAreaForOrder(order, tables)
         byKey.set(key, area)
       }
     }
     const garden: { key: string; tableNo: string }[] = []
     const hall: { key: string; tableNo: string }[] = []
     for (const [key, area] of byKey.entries()) {
-      const tile = { key, tableNo: getTableDisplayLabel(key) }
+      const tile = { key, tableNo: getTableDisplayLabel(key), parts: getTableDisplayParts(key) }
       if (area.toLowerCase() === 'garden') garden.push(tile)
       else hall.push(tile) // Hall + any unknown area
     }
     return { gardenTiles: garden, hallTiles: hall }
   }, [runningOrders, tables])
-
-  const currentTiles = activeArea === 'garden' ? gardenTiles : hallTiles
-  const theme = activeArea === 'garden' ? GARDEN_THEME : HALL_THEME
-  const AreaIcon = activeArea === 'garden' ? GardenIcon : HallIcon
-  const areaLabel = activeArea === 'garden' ? 'Garden' : 'Hall'
 
   return (
     <>
@@ -178,91 +171,135 @@ export default function ExecutionOrdersSidebar({
             </div>
           </div>
 
-          {/* Garden / Hall area tabs */}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveArea('garden')}
-              className={`flex-1 min-h-[48px] flex items-center justify-center gap-2 rounded-xl border-2 font-semibold text-sm transition-all ${activeArea === 'garden' ? GARDEN_THEME.tabSelected : GARDEN_THEME.tabUnselected}`}
-            >
-              <GardenIcon />
-              <span>Garden</span>
-              {gardenTiles.length > 0 && (
-                <span className={`ml-0.5 px-1.5 py-0.5 rounded-md text-xs font-bold ${activeArea === 'garden' ? 'bg-black/15 text-black' : 'bg-garden-200/70 text-garden-900'}`}>
-                  {gardenTiles.length}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveArea('hall')}
-              className={`flex-1 min-h-[48px] flex items-center justify-center gap-2 rounded-xl border-2 font-semibold text-sm transition-all ${activeArea === 'hall' ? HALL_THEME.tabSelected : HALL_THEME.tabUnselected}`}
-            >
-              <HallIcon />
-              <span>Hall</span>
-              {hallTiles.length > 0 && (
-                <span className={`ml-0.5 px-1.5 py-0.5 rounded-md text-xs font-bold ${activeArea === 'hall' ? 'bg-white/25' : 'bg-amber-200/70 text-amber-900'}`}>
-                  {hallTiles.length}
-                </span>
-              )}
-            </button>
-          </div>
         </div>
 
-        {/* Table tiles for selected area */}
-        <div className={`flex-1 overflow-y-auto min-h-0 ${theme.panelBg}`}>
-          {currentTiles.length > 0 ? (
-            <div className="p-3">
-              <p className="text-xs font-medium text-neutral-500 mb-2 uppercase tracking-wide">
-                {areaLabel} tables
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {currentTiles.map(({ key, tableNo }) => {
-                  const order = getOrderForTable(key, runningOrders)
-                  const isSelected = selectedOrderId === order?.id
-                  const isLoadingIntoCart = order && loadingOrderIntoCartId === order.id
-                  const tileClasses = isSelected ? theme.tileSelected : theme.tileUnselected
-                  const handleTileClick = () => {
-                    if (!order || !onLoadOrderIntoCart) return
-                    onSelectOrder(order.id)
-                    void onLoadOrderIntoCart(order)
-                  }
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={handleTileClick}
-                      disabled={!order || !!loadingOrderIntoCartId}
-                      className={`min-h-[64px] flex flex-col items-center justify-center px-3 py-2 rounded-xl border-2 transition-all relative disabled:opacity-70 disabled:cursor-not-allowed overflow-visible ${tileClasses} ${isSelected ? 'animate-live-glow shadow-lg' : ''}`}
-                    >
-                      {/* Animated "live" ring when selected */}
-                      {isSelected && (
-                        <span
-                          className="absolute inset-0 rounded-xl border-2 border-current pointer-events-none animate-live-ring opacity-40"
-                          aria-hidden
-                        />
-                      )}
-                      <span className="text-lg font-bold leading-tight relative z-10">{tableNo}</span>
-                      {isLoadingIntoCart && (
-                        <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/70 z-20">
-                          <svg className="w-6 h-6 animate-spin text-current opacity-90" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
+        {/* Garden and Hall orders – elegant tiles, single scroll */}
+        <div className="flex-1 overflow-y-auto min-h-0 bg-gradient-to-b from-slate-50/50 to-white">
+          <div className="p-3 space-y-5">
+            {/* Garden tables section */}
+            <section>
+              <div className="flex items-center gap-2 mb-2.5 px-1">
+                <div className="p-1.5 rounded-lg bg-green-200 border border-green-400 shadow-sm">
+                  <GardenIcon className="w-4 h-4 text-green-700" />
+                </div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Garden Tables
+                </h3>
               </div>
-            </div>
-          ) : (
-            <div className={`p-6 text-center text-sm ${theme.emptyText}`}>
-              <AreaIcon className="w-10 h-10 mx-auto mb-2 opacity-60" />
-              <p className="font-medium">No running orders</p>
-              <p className="text-xs mt-0.5 opacity-90">in {areaLabel}</p>
-            </div>
-          )}
+              {gardenTiles.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {gardenTiles.map(({ key, tableNo, parts }) => {
+                    const order = getOrderForTable(key, runningOrders)
+                    const isSelected = selectedOrderId === order?.id
+                    const isLoadingIntoCart = order && loadingOrderIntoCartId === order.id
+                    const theme = GARDEN_THEME
+                    const tileClasses = isSelected ? theme.tileSelected : theme.tileUnselected
+                    const handleTileClick = () => {
+                      if (!order || !onLoadOrderIntoCart) return
+                      onSelectOrder(order.id)
+                      void onLoadOrderIntoCart(order)
+                    }
+                    return (
+                      <button
+                        key={`garden-${key}`}
+                        type="button"
+                        onClick={handleTileClick}
+                        disabled={!order || !!loadingOrderIntoCartId}
+                        className={`min-h-[52px] flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-200 relative disabled:opacity-60 disabled:cursor-not-allowed ${tileClasses} ${isSelected ? 'animate-live-glow' : ''}`}
+                        title={tableNo}
+                      >
+                        {isSelected && (
+                          <span
+                            className="absolute inset-0 rounded-xl ring-2 ring-inset ring-white/30 pointer-events-none"
+                            aria-hidden
+                          />
+                        )}
+                        <span className="inline-flex items-center justify-center gap-2 text-sm font-bold whitespace-nowrap flex-shrink-0 relative z-10">
+                          <span>{parts.label}</span>
+                          {parts.number && <span className="text-sm font-extrabold [text-shadow:0_1px_2px_rgba(0,0,0,0.15)]">{parts.number}</span>}
+                        </span>
+                        {isLoadingIntoCart && (
+                          <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 z-20">
+                            <svg className="w-5 h-5 animate-spin text-current" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className={`p-4 text-center rounded-xl text-sm font-medium ${GARDEN_THEME.emptyBox}`}>
+                  <GardenIcon className="w-6 h-6 mx-auto mb-1.5 text-emerald-400" />
+                  <p>No running orders in Garden</p>
+                </div>
+              )}
+            </section>
+
+            {/* Hall tables section */}
+            <section>
+              <div className="flex items-center gap-2 mb-2.5 px-1">
+                <div className="p-1.5 rounded-lg bg-amber-200 border border-amber-500 shadow-sm">
+                  <HallIcon className="w-4 h-4 text-amber-800" />
+                </div>
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Hall Tables
+                </h3>
+              </div>
+              {hallTiles.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {hallTiles.map(({ key, tableNo, parts }) => {
+                    const order = getOrderForTable(key, runningOrders)
+                    const isSelected = selectedOrderId === order?.id
+                    const isLoadingIntoCart = order && loadingOrderIntoCartId === order.id
+                    const theme = HALL_THEME
+                    const tileClasses = isSelected ? theme.tileSelected : theme.tileUnselected
+                    const handleTileClick = () => {
+                      if (!order || !onLoadOrderIntoCart) return
+                      onSelectOrder(order.id)
+                      void onLoadOrderIntoCart(order)
+                    }
+                    return (
+                      <button
+                        key={`hall-${key}`}
+                        type="button"
+                        onClick={handleTileClick}
+                        disabled={!order || !!loadingOrderIntoCartId}
+                        className={`min-h-[52px] flex items-center justify-center px-4 py-3 rounded-xl border transition-all duration-200 relative disabled:opacity-60 disabled:cursor-not-allowed ${tileClasses} ${isSelected ? 'animate-live-glow' : ''}`}
+                        title={tableNo}
+                      >
+                        {isSelected && (
+                          <span
+                            className="absolute inset-0 rounded-xl ring-2 ring-inset ring-white/30 pointer-events-none"
+                            aria-hidden
+                          />
+                        )}
+                        <span className="inline-flex items-center justify-center gap-2 text-sm font-bold whitespace-nowrap flex-shrink-0 relative z-10">
+                          <span>{parts.label}</span>
+                          {parts.number && <span className="text-sm font-extrabold [text-shadow:0_1px_2px_rgba(0,0,0,0.15)]">{parts.number}</span>}
+                        </span>
+                        {isLoadingIntoCart && (
+                          <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/80 z-20">
+                            <svg className="w-5 h-5 animate-spin text-current" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className={`p-4 text-center rounded-xl text-sm font-medium ${HALL_THEME.emptyBox}`}>
+                  <HallIcon className="w-6 h-6 mx-auto mb-1.5 text-amber-400" />
+                  <p>No running orders in Hall</p>
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </>

@@ -9,7 +9,7 @@ import { useState } from 'react'
 import type { CartItem, Order } from '@/types/pos'
 import type { CustomerToEdit } from '@/components/POS/AddCustomerModal'
 
-export type MobileActivePanel = 'products' | 'orders' | 'execution' | 'dashboard'
+export type MobileActivePanel = 'products' | 'orders' | 'execution'
 
 export interface EditingCartItemProduct {
   id: string
