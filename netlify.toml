@@ -1,12 +1,13 @@
 # Netlify configuration for Next.js 14 (FoodGo POS)
 # Netlify auto-detects Next.js and uses OpenNext – no extra plugin needed.
-# If your repo root is the parent folder, set "Base directory" to "reactnextjs" in Netlify UI.
 
 [build]
   command = "npm run build"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
 
-# Optional: set NEXT_PUBLIC_API_URL in Netlify UI (Site settings → Environment variables)
-# so the app points to your backend API in production.
+# Required: Set in Netlify UI (Site settings → Environment variables)
+# NEXT_PUBLIC_API_URL = your backend API URL (e.g. https://demo.webwideit.solutions/pos-aishwarya/public)
+# Optional: NEXT_PUBLIC_TAX_RATE = 10

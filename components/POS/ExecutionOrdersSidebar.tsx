@@ -124,9 +124,9 @@ export default function ExecutionOrdersSidebar({
         byKey.set(key, area)
       }
     }
-    const garden: { key: string; tableNo: string }[] = []
-    const hall: { key: string; tableNo: string }[] = []
-    for (const [key, area] of byKey.entries()) {
+    const garden: { key: string; tableNo: string; parts: { label: string; number: string } }[] = []
+    const hall: { key: string; tableNo: string; parts: { label: string; number: string } }[] = []
+    for (const [key, area] of Array.from(byKey.entries())) {
       const tile = { key, tableNo: getTableDisplayLabel(key), parts: getTableDisplayParts(key) }
       if (area.toLowerCase() === 'garden') garden.push(tile)
       else hall.push(tile) // Hall + any unknown area
