@@ -155,8 +155,9 @@ export default function OrderSummary({
           </div>
         </div>
       </div>
-      {/* Cart actions - Refined cohesive theme */}
-      <div className="flex flex-nowrap items-center justify-end gap-2 w-full min-w-0 mt-1">
+      {/* Cart actions - scrollable row on small screens so all buttons stay accessible */}
+      <div className="w-full min-w-0 mt-1 overflow-x-auto overflow-y-hidden scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex flex-nowrap items-center justify-end gap-2 min-w-max">
         <button
           onClick={onClearCart}
           className="inline-flex items-center justify-center gap-1 shrink-0 min-h-[28px] px-1.5 py-1 text-[10px] font-bold rounded-lg text-white bg-rose-600 hover:bg-rose-700 focus:ring-2 focus:ring-rose-400 focus:ring-offset-1 active:scale-[0.98] shadow-sm transition-all duration-200 touch-manipulation"
@@ -253,6 +254,7 @@ export default function OrderSummary({
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   )

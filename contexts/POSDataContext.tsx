@@ -96,6 +96,27 @@ function mapApiOrderToOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): Ord
   const waiterId = raw.waiter_id != null ? Number(raw.waiter_id) : raw.waiterId != null ? Number(raw.waiterId) : undefined
   const areaVal = raw.areas ?? raw.area
   const area = typeof areaVal === 'string' && areaVal.trim() !== '' ? String(areaVal).trim() : undefined
+
+  // Customer phone: from order API fields first, then from nested customer object, then from customers list by customerId
+  let customerPhone: string | undefined
+  const rawPhone =
+    raw.customer_phone ?? raw.customer_phone_number ?? raw.phone ?? raw.mobile ?? raw.contact
+  if (rawPhone != null && typeof rawPhone === 'string' && rawPhone.trim().length >= 6) {
+    customerPhone = rawPhone.trim()
+  } else {
+    const custObj = raw.customer ?? raw.Customer
+    if (custObj && typeof custObj === 'object' && !Array.isArray(custObj)) {
+      const co = custObj as Record<string, unknown>
+      const np = co.phone ?? co.mobile ?? co.contact ?? co.contact_number
+      if (np != null && typeof np === 'string' && np.trim().length >= 6) customerPhone = np.trim()
+    }
+  }
+  if (customerPhone == null && customerId != null && customers.length > 0) {
+    const match = customers.find((c) => String(c.id) === String(customerId))
+    const mp = match?.phone ?? (match as Record<string, unknown> | undefined)?.mobile
+    if (mp != null && typeof mp === 'string' && mp.trim().length >= 6) customerPhone = mp.trim()
+  }
+
   return {
     id: String(api.id),
     orderNumber: api.order_no != null ? String(api.order_no) : undefined,
@@ -113,6 +134,7 @@ function mapApiOrderToOrder(api: ApiDisplayOrder, customers: ApiCustomer[]): Ord
     createdAt,
     waiter: api.waiter != null ? String(api.waiter) : undefined,
     customerId: customerId != null && !Number.isNaN(customerId) ? customerId : undefined,
+    ...(customerPhone != null && { customerPhone }),
     waiterId: waiterId != null && !Number.isNaN(waiterId) ? waiterId : undefined,
     payment: api.payment as Order['payment'] | undefined,
     ...(area && { area }),

@@ -111,7 +111,7 @@ export default function ProductCatalogPanel({
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 sm:pl-11 pr-10 sm:pr-11 py-3.5 sm:py-2.5 border border-neutral-200 rounded-xl sm:rounded-lg text-base sm:text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-neutral-800 touch-manipulation"
+                className="w-full pl-10 sm:pl-11 pr-10 sm:pr-11 py-3.5 sm:py-2.5 border border-neutral-200 rounded-xl sm:rounded-lg text-base sm:text-sm placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-neutral-800 touch-manipulation bg-white"
                 aria-label="Search products"
                 autoComplete="off"
                 autoCorrect="off"
