@@ -25,6 +25,7 @@ function getItemLineTotals(item: CartItem) {
 }
 
 import { printInvoice as printInvoiceFromLib } from '@/lib/invoicePrint'
+import { SendInvoiceWhatsAppButton } from '@/components/POS/SendInvoiceWhatsAppButton'
 
 export interface BillSummaryValues {
   mrp: number
@@ -269,30 +270,34 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
       }
       return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 xs:p-4 overflow-y-auto">
-          <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-md mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
-            <div className="p-8 text-center">
-              <div className="mx-auto w-14 h-14 rounded-full bg-success-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-sm mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
+            <div className="p-6 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-success-100 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Payment is paid successfully</h2>
-              <p className="text-gray-600 mb-6">Order {orderNumber} has been completed.</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Payment is paid successfully</h2>
+              <p className="text-gray-600 text-sm mb-4">Order {orderNumber} has been completed.</p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center flex-wrap">
                 <button
                   type="button"
                   onClick={handlePrintFromSuccess}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   Print Invoice
                 </button>
+                <SendInvoiceWhatsAppButton
+                  order={order}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-[#25D366] text-white rounded-lg font-semibold hover:bg-[#20bd5a] transition-colors"
+                />
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 bg-primary-500 text-white rounded-xl font-semibold hover:bg-primary-600 transition-colors"
+                  className="px-4 py-2.5 text-sm bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors"
                 >
                   Close
                 </button>
@@ -305,27 +310,27 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 xs:p-4 overflow-y-auto">
-        <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-md mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
-          <div className="border-b border-gray-200 px-4 sm:px-5 py-4 bg-gradient-to-b from-white to-gray-50/50">
+        <div data-modal-content className="bg-white rounded-xl shadow-strong w-full max-w-sm mx-auto overflow-hidden border border-gray-200 flex-shrink-0">
+          <div className="border-b border-gray-200 px-3 sm:px-4 py-3 bg-gradient-to-b from-white to-gray-50/50">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Payment</h2>
+              <h2 className="text-lg font-bold text-gray-900">Payment</h2>
               <button
                 onClick={onClose}
-                className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-all hover:text-primary-600"
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all hover:text-primary-600"
                 aria-label="Close"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <div className="p-4 sm:p-5 space-y-5 max-h-[70vh] overflow-y-auto">
+          <div className="p-3 sm:p-4 space-y-4 max-h-[65vh] overflow-y-auto">
             {/* Order Number */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-700">Order Number</span>
-              <span className="px-3 py-2 bg-gray-100 rounded-lg text-gray-900 font-medium">{orderNumber}</span>
+              <span className="px-2.5 py-1.5 bg-gray-100 rounded-lg text-gray-900 font-medium text-sm">{orderNumber}</span>
             </div>
 
             {/* Order Items - same layout as invoice */}
@@ -426,7 +431,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     type="text"
                     readOnly
                     value={totalAmount.toFixed(2)}
-                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-right font-medium"
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 text-right font-medium"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -437,7 +442,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     step={0.01}
                     value={discountStr}
                     onChange={(e) => setDiscountStr(e.target.value)}
-                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -448,7 +453,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     step={0.01}
                     value={onlineStr}
                     onChange={(e) => setOnlineStr(e.target.value)}
-                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -459,7 +464,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     step={0.01}
                     value={cashStr}
                     onChange={(e) => setCashStr(e.target.value)}
-                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <div className="flex items-center justify-between gap-2">
@@ -468,7 +473,7 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     type="text"
                     readOnly
                     value={balance.toFixed(2)}
-                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-right font-medium"
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-900 text-right font-medium"
                   />
                 </div>
                 <div>
@@ -478,40 +483,57 @@ function PaymentModal({ order, cartItems = [], cartContext, payableAmount, billS
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Optional note"
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-200 px-4 sm:px-5 py-4 bg-gray-50/50 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={handleSubmitOrder}
-              disabled={!canSubmitOrderPayment || submitting}
-              className="px-4 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 active:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            >
-              Submit
-            </button>
-            <button
-              type="button"
-              onClick={handlePrintInvoice}
-              disabled={!canSubmitOrderPayment || submitting}
-              className="flex items-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 active:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print Invoice
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 active:bg-red-700 transition-all"
-            >
-              Close
-            </button>
+          <div className="border-t border-gray-200 px-3 sm:px-4 py-3 bg-gray-50/50">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleSubmitOrder}
+                  disabled={!canSubmitOrderPayment || submitting}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl shadow-md bg-green-500 text-white text-sm font-semibold hover:bg-green-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePrintInvoice}
+                  disabled={!canSubmitOrderPayment || submitting}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl shadow-md bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print Invoice
+                </button>
+              </div>
+              <div className="flex gap-3">
+                <SendInvoiceWhatsAppButton
+                  order={order}
+                  disabled={submitting}
+                  className="flex-1 h-11 min-w-0 flex items-center justify-center gap-2 rounded-xl shadow-md bg-[#25D366] text-white text-sm font-semibold hover:bg-[#20bd5a] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                />
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl shadow-md bg-red-500 text-white text-sm font-semibold hover:bg-red-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

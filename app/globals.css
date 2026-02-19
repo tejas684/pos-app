@@ -240,6 +240,11 @@ body {
   .flex-shrink-allow {
     min-width: 0;
   }
+
+  /* Bottom safe area for mobile tab bar (notch / home indicator) */
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
 }
 
 /* Media queries for zoom and viewport scenarios */

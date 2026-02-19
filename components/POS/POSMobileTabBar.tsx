@@ -49,7 +49,7 @@ export default function POSMobileTabBar({
   ) : null
 
   return (
-    <div className="flex-shrink-0 w-full min-w-0 bg-white border-b border-neutral-200 shadow-md z-30 flex flex-col md:hidden">
+    <div className="flex-shrink-0 w-full min-w-0 bg-white border-b border-neutral-200 shadow-md z-30 flex flex-col md:hidden pb-safe">
       <div className="flex items-center justify-around px-2 py-3 gap-1 w-full">
         {tab(
           'execution',

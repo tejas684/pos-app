@@ -736,6 +736,16 @@ export function mapPlaceOrderResponseToOrder(
   const areaVal = rawRecord.areas ?? rawRecord.area
   const area = typeof areaVal === 'string' && areaVal.trim() !== '' ? String(areaVal).trim() : undefined
 
+  let customerPhone: string | undefined
+  const rp = rawRecord.customer_phone ?? rawRecord.phone ?? rawRecord.mobile ?? rawRecord.contact
+  if (rp != null && typeof rp === 'string' && rp.trim().length >= 6) {
+    customerPhone = rp.trim()
+  } else if (customerObj && typeof customerObj === 'object') {
+    const co = customerObj as Record<string, unknown>
+    const np = co.phone ?? co.mobile ?? co.contact ?? co.contact_number
+    if (np != null && typeof np === 'string' && np.trim().length >= 6) customerPhone = String(np).trim()
+  }
+
   return {
     id,
     ...(orderNumber && { orderNumber }),
@@ -752,6 +762,7 @@ export function mapPlaceOrderResponseToOrder(
     tips: raw.tips != null ? Number(raw.tips) : undefined,
     createdAt,
     waiter: String(waiterName),
+    ...(customerPhone && { customerPhone }),
     ...(area && { area }),
     ...(selectedPersons !== undefined && selectedPersons > 0 && { selectedPersons }),
     ...(pricePerPerson !== undefined && pricePerPerson >= 0 && { pricePerPerson }),

@@ -23,6 +23,7 @@
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: false,
   // Content paths: Tailwind scans these files for class names
   // Only classes found in these files will be included in the final CSS
   content: [

@@ -69,7 +69,7 @@ function DiscountModal({ currentDiscount, discountType, subtotal = 0, onClose, o
                 min={0}
                 max={100}
                 step="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white text-gray-900"
                 placeholder="0-100"
                 autoFocus
               />

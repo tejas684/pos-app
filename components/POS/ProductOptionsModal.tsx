@@ -157,7 +157,7 @@ export default function ProductOptionsModal({
                 const v = parseFloat(e.target.value)
                 if (!Number.isNaN(v) && v >= 0) setPriceInput(v.toFixed(2))
               }}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
               placeholder="0.00"
             />
           </div>
@@ -208,7 +208,7 @@ export default function ProductOptionsModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Special instructions..."
               rows={3}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none bg-white"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none bg-white text-gray-900"
             />
           </div>
         </div>

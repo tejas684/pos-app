@@ -135,7 +135,7 @@ function ProductCatalog({
               : `${selectedCategory} Products`
             }
           </h2>
-          <span className="px-2 py-1 sm:px-2 sm:py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-semibold whitespace-nowrap">
+          <span className="px-2 py-1 sm:px-2 sm:py-0.5 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 rounded-full text-xs font-semibold whitespace-nowrap">
             {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
           </span>
         </div>
@@ -186,7 +186,7 @@ function ProductCatalog({
                 </svg>
               </div>
               <p className="text-neutral-700 font-semibold text-base sm:text-lg">No products found</p>
-              <p className="text-neutral-500 text-sm sm:text-sm mt-1.5 text-center">Try a different search or category</p>
+              <p className="text-neutral-500  text-sm sm:text-sm mt-1.5 text-center">Try a different search or category</p>
             </div>
           )}
         </div>
@@ -245,7 +245,7 @@ function ProductCard({
       {/* Content: name + price - compact for 100% zoom; 3-col grid, smaller cards */}
       <div className="flex flex-col flex-1 p-2 min-w-0">
         <h3
-          className="font-bold text-neutral-900 text-xs leading-tight line-clamp-2 mb-1 break-words overflow-hidden min-h-[2rem]"
+          className="font-bold text-neutral-900 dark:text-neutral-100 text-xs leading-tight line-clamp-2 mb-1 break-words overflow-hidden min-h-[2rem]"
           title={product.name}
         >
           {product.name}
@@ -265,7 +265,7 @@ function ProductCard({
                   e.stopPropagation()
                   onDecrementInCart?.(product.id)
                 }}
-                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-xs"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-neutral-600 transition-colors text-xs"
                 aria-label="Decrease quantity"
               >
                 <span className="text-xl font-medium leading-none">−</span>
@@ -278,13 +278,13 @@ function ProductCard({
                   e.stopPropagation()
                   onProductClick(product)
                 }}
-                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors text-xs"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-neutral-600 transition-colors text-xs"
                 aria-label="Increase quantity"
               >
                 <span className="text-xl font-medium leading-none">+</span>
               </button>
             </div>
-            <span className="text-[9px] text-center text-neutral-500 font-medium">Customise</span>
+            <span className="text-[9px] text-center text-neutral-500  font-medium">Customise</span>
           </div>
         ) : null}
       </div>

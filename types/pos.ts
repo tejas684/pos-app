@@ -170,6 +170,8 @@ export interface Order {
   waiter?: string
   /** Customer ID from API (used when updating order without re-selecting customer). */
   customerId?: number
+  /** Customer phone from order (for WhatsApp invoice, etc.). */
+  customerPhone?: string
   /** Waiter ID from API (used when updating order without re-selecting waiter). */
   waiterId?: number
   /** Area for table (e.g. "Garden", "Hall") – shown on KOT with table. */

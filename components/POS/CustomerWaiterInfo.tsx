@@ -145,10 +145,10 @@ export default function CustomerWaiterInfo({
   )
 
   return (
-    <div className="px-2 py-1.5 border-b border-primary-100 bg-white/90 text-xs">
-      {/* Row aligned with table columns: 26% 14% 22% 14% 14% 10% (Item, Price, Qty, Discount, Total, action) */}
-      <div className="grid grid-cols-[26%_14%_22%_14%_14%_10%] min-w-[360px] w-full items-center gap-x-3">
-        {/* Waiter - column 1 (aligns with Item) */}
+    <div className="px-2 py-1.5 border-b border-primary-100 bg-white/90 text-xs min-w-0 w-full">
+      {/* Stacked on mobile (<400px); 6-column grid on desktop to align with table */}
+      <div className="grid grid-cols-1 min-[400px]:grid-cols-[26%_14%_22%_14%_14%_10%] items-center gap-2 min-[400px]:gap-x-3 min-[400px]:gap-y-0">
+        {/* Waiter */}
         <div className="relative min-w-0" ref={waiterDropdownRef}>
           <input
             ref={waiterInputRef}
@@ -163,7 +163,7 @@ export default function CustomerWaiterInfo({
             {ChevronDown}
           </span>
           {showWaiterDropdown && (
-            <div className="absolute z-50 w-full mt-0.5 bg-white border border-primary-200 rounded-lg shadow-medium max-h-52 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-0.5 bg-white dark:bg-neutral-800 border border-primary-200 dark:border-neutral-600 rounded-lg shadow-medium max-h-52 overflow-y-auto">
               {filteredWaiters.length > 0 ? (
                 filteredWaiters.map((w) => (
                   <button
@@ -178,14 +178,14 @@ export default function CustomerWaiterInfo({
                   </button>
                 ))
               ) : (
-                <div className="px-2 py-1.5 text-xs text-neutral-500 text-center">No waiters found</div>
+                <div className="px-2 py-1.5 text-xs text-neutral-500  text-center">No waiters found</div>
               )}
             </div>
           )}
         </div>
 
-        {/* Customer - columns 2 & 3 (aligns with Price, Qty) */}
-        <div className="col-span-2 relative min-w-0" ref={customerDropdownRef}>
+        {/* Customer - full width on mobile, columns 2 & 3 on desktop */}
+        <div className="min-[400px]:col-span-2 relative min-w-0" ref={customerDropdownRef}>
           <input
             ref={customerInputRef}
             type="text"
@@ -214,14 +214,14 @@ export default function CustomerWaiterInfo({
                   </button>
                 ))
               ) : (
-                <div className="px-2 py-1.5 text-xs text-neutral-500 text-center">No customers found</div>
+                <div className="px-2 py-1.5 text-xs text-neutral-500  text-center">No customers found</div>
               )}
             </div>
           )}
         </div>
 
-        {/* Columns 4 & 5 - Edit and Add buttons (grouped, no gap between) */}
-        <div className="col-span-2 flex items-center justify-end gap-1 min-w-0">
+        {/* Edit and Add buttons - full width on mobile, columns 4 & 5 on desktop */}
+        <div className="min-[400px]:col-span-2 flex items-center justify-end gap-1 min-w-0">
           <button
             type="button"
             onClick={() => canEditCustomer && selectedCustomer && onShowCustomerModal(selectedCustomer)}
@@ -245,8 +245,8 @@ export default function CustomerWaiterInfo({
           </button>
         </div>
 
-        {/* Column 6 (action) - empty for alignment */}
-        <div className="min-w-0" />
+        {/* Column 6 (action) - empty for alignment on desktop only */}
+        <div className="hidden min-[400px]:block min-w-0" />
       </div>
     </div>
   )
